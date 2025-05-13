@@ -1,0 +1,125 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.41500, 48.86700],
+          [2.41580, 48.86700],
+          [2.41580, 48.86740],
+          [2.41500, 48.86740],
+          [2.41500, 48.86700]
+        ]]
+      },
+      "properties": {
+        "titre": "Souvenirs d’un lieu vivant",
+        "contenu": "Il y avait toujours du monde ici, des enfants qui jouaient, des discussions jusque tard le soir.",
+        "grande_categorie": "discours",
+        "auteur": "Mamadou D.",
+        "date": "2021-06-12",
+        "source": "Entretien #5",
+        "tonalite": "positive",
+        "temps": "passé",
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.41810, 48.86670],
+          [2.41890, 48.86670],
+          [2.41890, 48.86700],
+          [2.41810, 48.86700],
+          [2.41810, 48.86670]
+        ]]
+      },
+      "properties": {
+        "titre": "Inconfort quotidien",
+        "contenu": "Le passage est trop étroit, mal éclairé, et beaucoup évitent de le prendre le soir.",
+        "grande_categorie": "discours",
+        "auteur": "Samira L.",
+        "date": "2024-02-19",
+        "source": "Atelier #1",
+        "tonalite": "négative",
+        "temps": "présent",
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.41720, 48.86480],
+          [2.41800, 48.86480],
+          [2.41800, 48.86510],
+          [2.41720, 48.86510],
+          [2.41720, 48.86480]
+        ]]
+      },
+      "properties": {
+        "titre": "Un avenir partagé ?",
+        "contenu": "Si on réussit à aménager cet espace ensemble, il pourrait devenir un jardin pour tous.",
+        "grande_categorie": "discours",
+        "auteur": "Collectif Jeunesse Populaire",
+        "date": "2025-03-08",
+        "source": "Réunion publique",
+        "tonalite": "positive",
+        "temps": "futur",
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.41630, 48.86550],
+          [2.41710, 48.86550],
+          [2.41710, 48.86590],
+          [2.41630, 48.86590],
+          [2.41630, 48.86550]
+        ]]
+      },
+      "properties": {
+        "titre": "Un constat banal",
+        "contenu": "C’est un lieu de passage comme un autre, pas spécialement utilisé pour autre chose.",
+        "grande_categorie": "discours",
+        "auteur": "Anonyme",
+        "date": "2023-10-11",
+        "source": "Micro-trottoir",
+        "tonalite": "neutre",
+        "temps": "présent",
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [2.41930, 48.86560],
+          [2.42000, 48.86560],
+          [2.42000, 48.86600],
+          [2.41930, 48.86600],
+          [2.41930, 48.86560]
+        ]]
+      },
+      "properties": {
+        "titre": "Des promesses non tenues",
+        "contenu": "On nous avait parlé d’un réaménagement, mais rien n’a changé depuis trois ans.",
+        "grande_categorie": "discours",
+        "auteur": "Claire T.",
+        "date": "2022-09-21",
+        "source": "Entretien #9",
+        "tonalite": "négative",
+        "temps": "passé",
+        "isDiscourse": true
+      }
+    }
+  ]
+}

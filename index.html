@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Carte thèse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Consolas', monospace;
+        }
+        body {
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Carte en arrière-plan */
+        }
+        #proxemic-view {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000; /* Fond noir */
+            z-index: 100; /* Vue proxémique au-dessus de la carte */
+            overflow: auto;
+        }
+        #sidebar {
+            width: 350px;
+            background: #f9f9f9;
+            padding: 1rem;
+            overflow-y: auto;
+            border-left: 1px solid #ccc;
+            display: none;
+            position: absolute;
+            top: 10%;
+            right: 0;
+            z-index: 101; /* Fenêtre de détails au-dessus de la carte */
+        }
+        #filters {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            z-index: 1000;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+        }
+        .photo {
+            width: 100%;
+            margin: 5px 0;
+        }
+        .circle {
+            position: absolute;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .circle span {
+            font-size: 12px;
+            color: black;
+        }
+        
+        .view-toggle-btn {
+    position: absolute;
+    top: 10px;
+    font-family: 'Consolas', monospace;
+    right: 10px;
+    background-color: #000000;
+    color: white;
+    padding: 10px;
+    border: 1px solid rgb(255, 255, 255);
+    cursor: pointer;
+    z-index: 110; /* Bouton de vue au-dessus de la carte */
+    margin-bottom: 5px; /* Ajoute un peu d'espace en dessous */
+}
+
+#toggle-location-btn {
+    position: absolute;
+    top: 55px; /* Positionne-le en dessous du premier bouton (10px + hauteur d'environ 35px) */
+    font-family: 'Consolas', monospace;
+    right: 10px;
+    background-color: #f0f0f0; /* Style différent pour le distinguer */
+    color: black;
+    padding: 8px 12px; /* Un peu plus petit pour le distinguer */
+    border: 1px solid #ccc; /* Style différent pour le distinguer */
+    cursor: pointer;
+    z-index: 110; /* Au même niveau que l'autre bouton */
+}
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: rgb(0, 0, 0);
+            color: white;
+            border: none;
+            padding: 5px;
+            cursor: pointer;
+            z-index: 110; /* Bouton de fermeture au-dessus de la carte */
+        }
+        .category-label {
+            position: absolute;
+            font-weight: bold;
+            color: #333;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 14px;
+            z-index: 101;
+            pointer-events: none;
+        }
+        .sidebar {
+    width: 350px;
+    background: #f9f9f9;
+    padding: 1rem;
+    overflow-y: auto;
+    border-left: 1px solid #ccc;
+    display: none;
+    position: absolute;
+    top: 10%;
+    right: 0;
+    z-index: 200;
+    max-height: 80vh; /* ← AJOUT ICI */
+}
+        #footer {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 80px;
+            border-top-left-radius: 0px;
+            font-family: 'Consolas', monospace;
+            box-shadow: -2px -2px 6px rgba(0,0,0,0.1);
+            z-index: 102;
+        }
+        #footer span {
+            font-size: 14px;
+        }
+        #info-btn {
+            font-size: 16px;
+            cursor: pointer;
+            background: none;
+            border: none;
+        }
+        #about {
+            display: none;
+            position: absolute;
+            bottom: 50px;
+            right: 20px;
+            width: 300px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 15px;
+            font-family: 'Consolas', monospace;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            z-index: 103;
+        }
+        #about h2 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+        #close-about {
+            margin-top: 10px;
+            background: #f0f0f0;
+            border: none;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-family: 'Consolas', monospace;
+        }
+        #info-btn {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #000000;
+            color: white;
+            border: none;
+            font-weight: bold;
+            font-family: sans-serif;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="proxemic-view"></div>
+<div id="gallery-view" style="
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 250px; /* pour ne pas passer sous les filtres */
+    right: 0;
+    bottom: 0;
+    background: white;
+    overflow-y: auto;
+    z-index: 100;
+    padding: 50px;
+    box-sizing: border-box;
+">
+</div>
+<div id="similarity-controls" style="display:none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: white; padding: 10px; z-index: 1050; border: 1px solid #ccc;">
+    <label for="similarity-slider">Nombre de critères communs : <span id="slider-value">5</span></label><br>
+    <input type="range" id="similarity-slider" min="2" max="15" value="5" step="1">
+</div>
+<div id="pattern-list" style="
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background: white;
+    color: black;
+    font-family: 'Consolas', monospace;
+    padding: 10px;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 1050;
+    display: none;
+    width: 300px;
+    font-size: 13px;
+    box-shadow: 0 0 6px rgba(0,0,0,0.2);
+">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+  <strong>Liste des patterns générés :</strong>
+  <button onclick="closePatternList()" style="background: none; border: none; color: rgb(0, 0, 0); font-weight: bold; font-size: 16px; cursor: pointer;">×</button>
+</div>
+<ul id="pattern-items" style="margin-top: 5px; padding-left: 15px;"></ul>
+    <p style="margin-top: 10px; font-size: 12px; color: gray;">
+        Couleur : nombre de critères communs<br>
+        Taille : nombre d'éléments concernés
+    </p>
+</div>
+
+<button id="reopen-pattern-btn" onclick="reopenPatternList()" style="
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: 'Consolas', monospace;
+    background: #000;
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+    z-index: 1050;
+    display: none;
+">📋 Voir les patterns</button>
+
+<div id="spatial-sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebars()">X</button>
+    <h2 id="spatial-name"></h2>
+    <p><strong>ID :</strong> <span id="spatial-id"></span></p>
+    <p id="spatial-description"></p>
+    <div id="spatial-photos"></div>
+</div>
+
+<div id="discourse-sidebar" class="sidebar">
+    <button class="close-btn" onclick="closeSidebars()">X</button>
+    <h2 id="discourse-name"></h2>
+    <p><strong>Auteur :</strong> <span id="discourse-author"></span></p>
+    <p><strong>Date :</strong> <span id="discourse-date"></span></p>
+    <p><strong>Source :</strong> <span id="discourse-source"></span></p>
+    <p><strong>Tonalité :</strong> <span id="discourse-tonalite"></span></p>
+    <p><strong>Temps :</strong> <span id="discourse-temps"></span></p>
+    <p id="discourse-text"></p>
+</div>
+
+<div id="filters">
+    <strong>Zones</strong><br>
+<label><input type="checkbox" class="filter-zone" value="montreuil" checked> Montreuil</label><br>
+<label><input type="checkbox" class="filter-zone" value="mirail" checked> Mirail</label><br><br>
+    <strong>Discours</strong><br>
+    <label><input type="checkbox" class="filter-discourses" checked> Afficher</label><br>
+    <strong>Tonalité du discours</strong><br>
+    <label><input type="checkbox" class="filter-tonalite" value="positive" checked> Positive</label><br>
+    <label><input type="checkbox" class="filter-tonalite" value="négative" checked> Négative</label><br>
+    <label><input type="checkbox" class="filter-tonalite" value="neutre" checked> Neutre</label><br>
+   </div>
+
+<button class="view-toggle-btn" onclick="toggleView()">Passer à la vue proxémique</button>
+<button id="gallery-toggle-btn" class="view-toggle-btn" style="top: 90px; display: none;" onclick="toggleGallery()">Galerie photo</button>
+<button id="toggle-location-btn" class="view-toggle-btn" onclick="toggleLocation()">Voir Toulouse</button>
+
+<div id="footer">
+    <span>Expérimentation</span>
+    <button id="info-btn">i</button>
+</div>
+
+<div id="about">
+    <h2>À propos</h2>
+    <p>Description.</p>
+    <p>Developpé par Iness Tkhayyare, LRA ENSA Toulouse</p>
+    <button id="close-about">X</button>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const montreuilView = [48.8710, 2.4330];
+const montreuilZoom = 15;
+const toulouseView = [43.5675824, 1.4000176];
+const toulouseZoom = 15; // J'ai mis le même zoom pour l'exemple, ajuste si besoin
+let currentLocation = 'montreuil'; // Commence par Montreuil
+
+function toggleLocation() {
+    const locationButton = document.getElementById('toggle-location-btn');
+    if (currentLocation === 'montreuil') {
+        map.setView(toulouseView, toulouseZoom);
+        locationButton.textContent = 'Voir Montreuil';
+        currentLocation = 'toulouse';
+    } else {
+        map.setView(montreuilView, montreuilZoom);
+        locationButton.textContent = 'Voir Toulouse';
+        currentLocation = 'montreuil';
+    }
+}
+
+const map = L.map('map').setView(montreuilView, montreuilZoom); // Initialiser la carte sur Montreuil
+const sidebar = document.getElementById('sidebar');
+const proxemicView = document.getElementById('proxemic-view');
+let allLayers = [];
+let dataGeojson = [];
+let datamGeojson = [];
+let isMapView = true;
+let patterns = {}; // Objet pour stocker les patterns { patternKey: { name: '...', elements: ['N001', ...], criteria: {...} } }
+let patternNames = {}; // Objet pour stocker les noms des patterns { patternKey: 'Nom du pattern' }
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors, © CartoDB'
+}).addTo(map);
+
+
+function showDetails(props) {
+    closeSidebars(); // Toujours fermer les deux avant
+
+    if (props.isPattern) {
+        // C'est un pattern
+        document.getElementById('spatial-name').textContent = patternNames[props.patternKey] || 'Pattern sans nom'; // Utiliser patternNames avec la clé des critères
+
+        const spatialIdElement = document.getElementById('spatial-id');
+        spatialIdElement.textContent = props.elements.join(', '); // Afficher les IDs des éléments
+        spatialIdElement.parentElement.querySelector('strong').textContent = 'Fragments:'; // Modifier l'intitulé
+
+        const spatialDescriptionElement = document.getElementById('spatial-description');
+        spatialDescriptionElement.textContent = `Basé sur les critères communs : ${Object.keys(props.criteria).filter(key => props.criteria[key]).join(', ')}`;
+
+        const spatialPhotosElement = document.getElementById('spatial-photos');
+        spatialPhotosElement.innerHTML = ''; // Effacer les anciennes photos
+
+        // Récupérer les détails de chaque élément du pattern et afficher une miniature
+        [...dataGeojson, ...datamGeojson].forEach(feature => {
+            if (props.elements.includes(feature.properties.id)) {
+                const elementDiv = document.createElement('div');
+                elementDiv.style.display = 'flex';
+                elementDiv.style.alignItems = 'center';
+                elementDiv.style.marginBottom = '5px';
+
+                const img = document.createElement('div');
+            img.style.width = '80px';
+            img.style.height = '60px';
+            img.style.marginRight = '8px';
+            img.style.flexShrink = '0';
+
+                if (feature.properties.photos && feature.properties.photos.length > 0) {
+            img.style.backgroundImage = `url(${feature.properties.photos[0]})`;
+            img.style.backgroundSize = 'cover';
+            img.style.backgroundPosition = 'center';
+            img.style.border = '1px solid #aaa';
+                } else {
+             img.style.backgroundColor = '#ffffff';
+            img.style.border = '1px solid #ddd';
+}
+
+elementDiv.appendChild(img);
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = feature.properties.name || feature.properties.id;
+                elementDiv.appendChild(nameSpan);
+
+                spatialPhotosElement.appendChild(elementDiv);
+            }
+        });
+
+        document.getElementById('spatial-sidebar').style.display = 'block';
+
+    } else if (props.isDiscourse) {
+        // C'est un discours (inchangé)
+        document.getElementById('discourse-name').textContent = props.titre || '';
+        document.getElementById('discourse-author').textContent = props.auteur || '';
+        document.getElementById('discourse-date').textContent = props.date || '';
+        document.getElementById('discourse-source').textContent = props.source || '';
+        document.getElementById('discourse-tonalite').textContent = props.tonalite || '';
+        document.getElementById('discourse-temps').textContent = props.temps || '';
+        document.getElementById('discourse-text').textContent = props.contenu || '';
+        document.getElementById('discourse-sidebar').style.display = 'block';
+    } else {
+        // C'est un élément spatial (inchangé)
+        document.getElementById('spatial-name').textContent = props.name || '';
+        document.getElementById('spatial-id').textContent = props.id || '';
+        document.getElementById('spatial-description').textContent = props.description || '';
+        const photos = document.getElementById('spatial-photos');
+        photos.innerHTML = '';
+        if (props.photos && props.photos.length) {
+            props.photos.forEach(photo => {
+                const img = document.createElement('img');
+                img.src = photo;
+                img.className = 'photo';
+                photos.appendChild(img);
+            });
+        }
+        document.getElementById('spatial-sidebar').style.display = 'block';
+    }
+}
+
+function closeSidebars() {
+    document.getElementById('spatial-sidebar').style.display = 'none';
+    document.getElementById('discourse-sidebar').style.display = 'none';
+}
+
+function closePatternList() {
+    document.getElementById('pattern-list').style.display = 'none';
+    document.getElementById('reopen-pattern-btn').style.display = 'block';
+}
+
+function reopenPatternList() {
+    document.getElementById('pattern-list').style.display = 'block';
+    document.getElementById('reopen-pattern-btn').style.display = 'none';
+}
+
+function applyFilters() {
+  const showDiscourses = document.querySelector('.filter-discourses').checked;
+  const activeTonalites = Array.from(document.querySelectorAll('.filter-tonalite:checked')).map(el => el.value.toLowerCase());
+const activeZones = Array.from(document.querySelectorAll('.filter-zone:checked')).map(cb => cb.value);
+
+  allLayers.forEach(layer => {
+   const props = layer.feature.properties;
+   const isDiscourse = props.isDiscourse;
+   let showLayer = false;
+
+   if (isDiscourse) {
+    const tonalite = props.tonalite?.toLowerCase() || '';
+    showLayer = showDiscourses && activeTonalites.includes(tonalite);
+   } else {
+    // Pour les éléments non-discours, ils sont toujours affichés
+    showLayer = true;
+    showLayer = activeZones.includes(layer.zone);
+   }
+
+   if (showLayer) {
+    if (!map.hasLayer(layer)) {
+     layer.addTo(map);
+    }
+   } else {
+    if (map.hasLayer(layer)) {
+     map.removeLayer(layer);
+    }
+   }
+  });
+
+  // Si on est en vue proxémique, ré-identifier et redessiner
+  if (!isMapView) {
+   const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
+   patterns = identifyPatterns(visibleFeatures);
+   showProxemicView();
+  }
+ }
+
+let patternCounter = 1; // Compteur pour les patterns
+
+
+function identifyPatterns(features) {
+    const criteriaKeys = [
+        "frequence_usage_aucun", "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien",
+        "mode_usage_prevu", "mode_usage_detourne", "mode_usage_creatif",
+        "intensite_usage_aucun", "intensite_usage_faible", "intensite_usage_moyenne", "intensite_usage_forte",
+        "echelle_micro", "echelle_meso", "echelle_macro",
+        "origine_forme_institutionnelle", "origine_forme_singuliere", "origine_forme_collective",
+        "accessibilite_libre", "accessibilite_semi_ouverte", "accessibilite_fermee",
+        "visibilite_cachee", "visibilite_visible", "visibilite_exposee",
+        "acteurs_visibles_habitant", "acteurs_visibles_institution", "acteurs_visibles_collectif", "acteurs_visibles_invisible",
+        "rapport_affectif_symbolique"
+    ];
+
+    const requiredCount = patternThreshold;
+    const usedIds = new Set();
+    const groups = [];
+    let groupIndex = 1;
+
+    for (let i = 0; i < features.length; i++) {
+        const f1 = features[i];
+        const f1Id = f1.properties.id;
+        if (usedIds.has(f1Id)) continue;
+
+        for (let j = i + 1; j < features.length; j++) {
+            const f2 = features[j];
+            const f2Id = f2.properties.id;
+            if (usedIds.has(f2Id)) continue;
+
+            let sharedCount = 0;
+            const sharedCriteria = {};
+
+            for (const key of criteriaKeys) {
+                if (f1.properties[key] === true && f2.properties[key] === true) {
+                    sharedCount++;
+                    sharedCriteria[key] = true;
+                }
+            }
+
+            if (sharedCount === requiredCount) {
+                const group = {
+                    name: `P${groupIndex++}`,
+                    elements: [f1Id, f2Id],
+                    criteria: sharedCriteria
+                };
+
+                for (let k = 0; k < features.length; k++) {
+                    const f3 = features[k];
+                    const f3Id = f3.properties.id;
+                    if (group.elements.includes(f3Id)) continue;
+
+                    const sharesAll = Object.keys(sharedCriteria).every(key => f3.properties[key] === true);
+                    if (sharesAll) {
+                        group.elements.push(f3Id);
+                    }
+                }
+
+                group.elements.forEach(id => usedIds.add(id));
+                groups.push(group);
+            }
+        }
+    }
+
+    const result = {};
+    patternNames = {};
+    groups.forEach(g => {
+        const key = g.name;
+        result[key] = {
+            name: key,
+            elements: g.elements,
+            criteria: g.criteria
+        };
+        patternNames[key] = key;
+    });
+
+    return result;
+}
+
+
+
+fetch('contour.geojson')
+    .then(response => response.json())
+    .then(data => {
+        L.geoJSON(data, {
+            style: {
+                color: '#919090',
+                weight: 2,
+                opacity: 0.8,
+                fillOpacity: 0
+            }
+        }).addTo(map);
+    });
+
+    fetch('data.geojson')
+    .then(res => res.json())
+    .then(data => {
+        dataGeojson = data.features;
+        patterns = identifyPatterns(dataGeojson); // Identifier les patterns après le chargement des données
+
+        L.geoJSON(data, {
+            
+            pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+  radius: 6,
+  color: 'red', // Tous les contours en rouge
+  weight: 1,
+  opacity: 1,
+  fillColor: 'red', // Tous les fonds en rouge
+  fillOpacity: 0.8
+ }),
+ style: feature => ({
+  color: 'red' // Assurez-vous que les formes (si vous en avez) sont aussi rouges par défaut
+ }),
+            onEachFeature: (feature, layer) => {
+    layer.zone = 'montreuil'; // Ajoute l'étiquette
+    allLayers.push(layer);
+    layer.on('click', () => showDetails(feature.properties));
+}
+        }).addTo(map);
+        // Une fois que la première base de données est chargée, chargez la seconde
+        fetch('datam.geojson')
+            .then(res => res.json())
+            .then(dataM => {
+                datamGeojson = dataM.features;
+
+                L.geoJSON(dataM, {
+                    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+                        radius: 6,
+                        color: 'blue', // Couleur différente pour distinguer datam
+                        weight: 1,
+                        opacity: 1,
+                        fillColor: 'blue',
+                        fillOpacity: 0.8
+                    }),
+                    style: feature => ({
+                        color: 'blue' // Couleur différente pour les formes de datam
+                    }),
+                    onEachFeature: (feature, layer) => {
+    layer.zone = 'mirail'; // Ajoute l'étiquette
+    allLayers.push(layer);
+    layer.on('click', () => showDetails(feature.properties));
+}
+                }).addTo(map);
+
+                // Identifier les patterns une fois que les deux bases de données spatiales sont chargées
+                const allSpatialFeatures = [...dataGeojson, ...datamGeojson].filter(feature => !feature.properties.isDiscourse);
+                patterns = identifyPatterns(allSpatialFeatures);
+
+                // Mise à jour de la vue proxémique initiale
+                if (!isMapView) {
+                    showProxemicView();
+                }
+            });
+    });
+
+
+fetch('discours.geojson')
+    .then(res => res.json())
+    .then(data => {
+        L.geoJSON(data, {
+            style: feature => ({
+                color: getDiscourseColor(feature.properties.tonalite),
+                fillColor: getDiscourseColor(feature.properties.tonalite),
+                weight: 1,
+                fill: 0.5,
+                dashArray: '5,10'
+            }),
+            pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+                radius: 8,
+                fillColor: 'red',
+                color: 'red',
+                weight: 0, // <- pas de contour pour les points aussi
+                opacity: 1,
+                fillOpacity: 0.7
+            }),
+            onEachFeature: (feature, layer) => {
+                allLayers.push(layer);
+                layer.on('click', () => showDetails(feature.properties));
+            }
+        }).addTo(map);
+    });
+
+document.querySelectorAll('.filter-discourses, .filter-tonalite, .filter-zone').forEach(cb => {
+  cb.addEventListener('change', () => {
+    applyFilters();
+
+    if (!isMapView) {
+      const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
+      patterns = identifyPatterns(visibleFeatures);
+
+      if (isGalleryView) {
+        showGalleryView();
+      } else {
+        showProxemicView();
+      }
+    }
+  });
+});
+
+function getDiscourseColor(tonalite) {
+    switch (tonalite) {
+        case 'positive':
+            return 'green';
+        case 'négative':
+            return 'red';
+        case 'neutre':
+            return 'gray';
+        default:
+            return 'blue'; // couleur par défaut si tonalité inconnue
+    }
+}
+
+function toggleView() {
+    const isMapVisible = map._container.style.display !== 'none';
+    const galleryBtn = document.getElementById('gallery-toggle-btn');
+    
+    if (isMapVisible) {
+        map._container.style.display = 'none';
+        proxemicView.style.display = 'block';
+        document.getElementById('similarity-controls').style.display = 'block';
+        galleryBtn.style.display = 'block';
+        isMapView = false;
+        document.querySelector('.view-toggle-btn').textContent = 'Passer à la vue cartographique';
+
+        const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
+        patterns = identifyPatterns(visibleFeatures);
+        showProxemicView();
+    } else {
+        isGalleryView = false;
+        document.getElementById('gallery-view').style.display = 'none';
+        galleryBtn.textContent = 'Voir galerie photo';
+        galleryBtn.style.display = 'none';
+        map._container.style.display = 'block';
+        proxemicView.style.display = 'none';
+        document.getElementById('similarity-controls').style.display = 'none';
+        isMapView = true;
+        document.querySelector('.view-toggle-btn').textContent = 'Passer à la vue proxémique';
+    }
+}
+
+
+let isGalleryView = false;
+
+function toggleGallery() {
+    isGalleryView = !isGalleryView;
+    const gallery = document.getElementById('gallery-view');
+    const proxemic = document.getElementById('proxemic-view');
+
+    if (isGalleryView) {
+        proxemic.style.display = 'none';
+        gallery.style.display = 'block';
+        document.getElementById('gallery-toggle-btn').textContent = 'Retour à la vue proxémique';
+        showGalleryView();
+    } else {
+        gallery.style.display = 'none';
+        proxemic.style.display = 'block';
+        document.getElementById('gallery-toggle-btn').textContent = 'Voir la galerie photo';
+    }
+}
+
+function showGalleryView() {
+    const gallery = document.getElementById('gallery-view');
+    gallery.innerHTML = ''; // reset
+
+    Object.entries(patterns).forEach(([key, pattern]) => {
+        const container = document.createElement('div');
+        container.style.padding = '20px';
+        container.style.borderBottom = '1px solid #ccc';
+
+        const title = document.createElement('h3');
+        title.textContent = `${key} — Critères : ${Object.keys(pattern.criteria).map(c => c.replace(/_/g, ' ')).join(', ')}`;
+        container.appendChild(title);
+
+        const photoRow = document.createElement('div');
+        photoRow.style.display = 'flex';
+        photoRow.style.flexWrap = 'wrap';
+        photoRow.style.gap = '10px';
+
+        [...dataGeojson, ...datamGeojson].forEach(feature => {
+            if (pattern.elements.includes(feature.properties.id) && feature.properties.photos?.length) {
+                feature.properties.photos.forEach(photo => {
+    const img = document.createElement('img');
+    img.src = photo;
+    img.style.width = '200px';
+    img.style.height = 'auto';
+    img.style.border = '1px solid #999';
+    img.style.cursor = 'pointer';
+    img.onclick = () => showDetails(feature.properties); // ← affiche la sidebar
+    photoRow.appendChild(img);
+});
+            }
+        });
+
+        container.appendChild(photoRow);
+        gallery.appendChild(container);
+    });
+}
+
+
+
+function calculatePatternSimilarity(patterns) {
+    const patternKeys = Object.keys(patterns);
+    const similarityMatrix = {};
+
+    for (let i = 0; i < patternKeys.length; i++) {
+        const key1 = patternKeys[i];
+        similarityMatrix[key1] = {};
+        for (let j = 0; j < patternKeys.length; j++) { // Correction ici : j commence à 0
+            const key2 = patternKeys[j];
+            let commonCriteria = 0;
+            for (const criteria in patterns[key1].criteria) {
+                if (patterns[key1].criteria[criteria] && patterns[key2].criteria[criteria]) {
+                    commonCriteria++;
+                }
+            }
+            similarityMatrix[key1][key2] = commonCriteria;
+        }
+    }
+    return similarityMatrix;
+}
+
+
+function getColorByCriteriaCount(count) {
+    if (count >= 12) return '#a50f15';
+    if (count >= 9) return '#de2d26';
+    if (count >= 6) return '#fb6a4a';
+    if (count >= 3) return '#fcae91';
+    return '#fee5d9';
+}
+
+let patternThreshold = 5; // seuil pour former les patterns
+let similarityThreshold = 5; // seuil pour dessiner les liens
+
+
+//methode de Fruchterman-Reingold, mais a reprendre pour avoir que dans le centre de la page avec des div 
+
+function showProxemicView() {
+    proxemicView.innerHTML = '';
+    document.getElementById('pattern-items').innerHTML = '';
+    document.getElementById('pattern-list').style.display = 'none';
+    document.getElementById('reopen-pattern-btn').style.display = 'block';
+
+
+    Object.entries(patterns).forEach(([key, pattern]) => {
+        const li = document.createElement('li');
+        li.textContent = `${key} (${pattern.elements.length}) — ${Object.keys(pattern.criteria).map(k => k.replaceAll('_', ' ')).join(', ')}`;
+        document.getElementById('pattern-items').appendChild(li);
+    });
+
+    const viewWidth = proxemicView.offsetWidth;
+    const viewHeight = proxemicView.offsetHeight;
+
+    const categories = {
+        percu: [
+            "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien",
+            "mode_usage_prevu", "mode_usage_detourne", "mode_usage_creatif",
+            "intensite_usage_faible", "intensite_usage_moyenne", "intensite_usage_forte", "intensite_usage_saturee"
+        ],
+        concu: [
+            "echelle_micro", "echelle_meso", "echelle_macro",
+            "origine_forme_institutionnelle", "origine_forme_singuliere", "origine_forme_collective",
+            "accessibilite_libre", "accessibilite_semi_ouverte", "accessibilite_fermee",
+            "visibilite_cachee", "visibilite_visible", "visibilite_exposee"
+        ],
+        vecu: [
+            "acteurs_visibles_habitant", "acteurs_visibles_institution", "acteurs_visibles_collectif", "acteurs_visibles_invisible",
+            "rapport_affectif_symbolique"
+        ]
+    };
+
+    function getDominantCategory(criteria) {
+        const counts = { percu: 0, concu: 0, vecu: 0 };
+        for (const key of Object.keys(criteria)) {
+            if (categories.percu.includes(key)) counts.percu++;
+            if (categories.concu.includes(key)) counts.concu++;
+            if (categories.vecu.includes(key)) counts.vecu++;
+        }
+        const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+        return dominant;
+    }
+
+    const positions = {
+        percu: { x: viewWidth * 0.25, y: viewHeight * 0.25 },
+        concu: { x: viewWidth * 0.75, y: viewHeight * 0.25 },
+        vecu: { x: viewWidth * 0.5, y: viewHeight * 0.75 }
+    };
+
+    const radiusScale = d => 8 + d.elements.length * 2;
+    const collisionPadding = 4;
+
+    const patternData = Object.values(patterns).map(pattern => {
+        const id = Object.keys(patterns).find(key => patterns[key] === pattern);
+        const category = getDominantCategory(pattern.criteria);
+        return {
+            id,
+            name: pattern.name,
+            criteria: pattern.criteria,
+            elements: pattern.elements,
+            category,
+            x: positions[category].x + (Math.random() - 0.5) * 50,
+            y: positions[category].y + (Math.random() - 0.5) * 50
+        };
+    });
+
+    const svg = d3.select("#proxemic-view").append("svg")
+        .attr("width", viewWidth)
+        .attr("height", viewHeight);
+
+    svg.append("text")
+        .attr("x", positions.percu.x)
+        .attr("y", positions.percu.y - 80)
+        .text("Espace perçu (usage)")
+        .style("fill", "white")
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
+
+    svg.append("text")
+        .attr("x", positions.concu.x)
+        .attr("y", positions.concu.y - 80)
+        .text("Espace conçu")
+        .style("fill", "white")
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
+
+    svg.append("text")
+        .attr("x", positions.vecu.x)
+        .attr("y", positions.vecu.y + 80)
+        .text("Espace vécu (expérience)")
+        .style("fill", "white")
+        .style("text-anchor", "middle")
+        .style("font-size", "14px")
+        .style("font-weight", "bold");
+
+    const simulation = d3.forceSimulation(patternData)
+        .force("x", d3.forceX(d => positions[d.category].x).strength(0.1))
+        .force("y", d3.forceY(d => positions[d.category].y).strength(0.1))
+        .force("collide", d3.forceCollide(d => radiusScale(d) + collisionPadding).iterations(3))
+        .stop();
+
+    for (let i = 0; i < 120; ++i) simulation.tick();
+
+    const patternNodes = svg.selectAll(".pattern-node")
+        .data(patternData)
+        .join("g")
+        .attr("class", "pattern-node")
+        .attr("transform", d => `translate(${d.x},${d.y})`);
+
+    patternNodes.append("circle")
+        .attr("r", d => radiusScale(d))
+        .style("fill", d => getColorByCriteriaCount(Object.keys(d.criteria).length))
+        .style("stroke", "black")
+        .style("cursor", "pointer")
+        .on("click", function(event, d) {
+            showDetails({ isPattern: true, patternKey: d.id, elements: d.elements, criteria: d.criteria });
+        });
+
+    patternNodes.append("text")
+        .attr("y", d => -(radiusScale(d) + 4))
+        .style("text-anchor", "middle")
+        .style("font-size", "11px")
+        .style("fill", "#fff")
+        .style("font-weight", "bold")
+        .text(d => `${d.name} (${d.elements.length})`);
+}
+
+
+
+</script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
+<style>
+  .link {
+    stroke: #aaa;
+    stroke-opacity: 0.6;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const infoBtn = document.getElementById('info-btn');
+    const aboutBox = document.getElementById('about');
+    const closeAbout = document.getElementById('close-about');
+
+    infoBtn.addEventListener('click', () => {
+      aboutBox.style.display = 'block';
+    });
+
+    closeAbout.addEventListener('click', () => {
+      aboutBox.style.display = 'none';
+    });
+  });
+
+
+</script>
+
+<script>
+document.getElementById('similarity-slider').addEventListener('input', function() {
+    const value = parseInt(this.value);
+    similarityThreshold = value;
+    patternThreshold = value; // ← sert aussi à identifier les patterns !
+    document.getElementById('slider-value').textContent = value;
+
+    if (!isMapView) {
+    const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
+    patterns = identifyPatterns(visibleFeatures);
+
+    if (isGalleryView) {
+        showGalleryView();
+    } else {
+        showProxemicView();
+    }
+}
+});
+</script>
+
+</body>
+</html>
