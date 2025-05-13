@@ -22,7 +22,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1; /* Carte en arrière-plan */
+            z-index: 1; 
         }
         #proxemic-view {
             display: none;
@@ -31,8 +31,8 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: #000; /* Fond noir */
-            z-index: 100; /* Vue proxémique au-dessus de la carte */
+            background: #000; 
+            z-index: 100; 
             overflow: auto;
             cursor: grab;
         }
@@ -46,7 +46,7 @@
             position: absolute;
             top: 10%;
             right: 0;
-            z-index: 101; /* Fenêtre de détails au-dessus de la carte */
+            z-index: 101; 
         }
         #filters {
             position: absolute;
@@ -88,21 +88,21 @@
     padding: 10px;
     border: 1px solid rgb(255, 255, 255);
     cursor: pointer;
-    z-index: 110; /* Bouton de vue au-dessus de la carte */
-    margin-bottom: 5px; /* Ajoute un peu d'espace en dessous */
+    z-index: 110; 
+    margin-bottom: 5px; 
 }
 
 #toggle-location-btn {
     position: absolute;
-    top: 55px; /* Positionne-le en dessous du premier bouton (10px + hauteur d'environ 35px) */
+    top: 55px; 
     font-family: 'Consolas', monospace;
     right: 10px;
-    background-color: #f0f0f0; /* Style différent pour le distinguer */
+    background-color: #f0f0f0; 
     color: black;
-    padding: 8px 12px; /* Un peu plus petit pour le distinguer */
-    border: 1px solid #ccc; /* Style différent pour le distinguer */
+    padding: 8px 12px; 
+    border: 1px solid #ccc; 
     cursor: pointer;
-    z-index: 110; /* Au même niveau que l'autre bouton */
+    z-index: 110; 
 }
 
         .close-btn {
@@ -114,7 +114,7 @@
             border: none;
             padding: 5px;
             cursor: pointer;
-            z-index: 110; /* Bouton de fermeture au-dessus de la carte */
+            z-index: 110; 
         }
         .category-label {
             position: absolute;
@@ -138,7 +138,7 @@
     top: 10%;
     right: 0;
     z-index: 200;
-    max-height: 80vh; /* ← AJOUT ICI */
+    max-height: 80vh; 
 }
         #footer {
             position: absolute;
@@ -321,12 +321,15 @@ document.getElementById('toggle-legend-btn').addEventListener('click', () => {
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+    // Initialisation de la carte sur Montreuil avec Leaflet
+    // Les vues peuvent alterner entre Montreuil et Toulouse
 const montreuilView = [48.8710, 2.4330];
 const montreuilZoom = 15;
 const toulouseView = [43.5675824, 1.4000176];
-const toulouseZoom = 15; // J'ai mis le même zoom pour l'exemple, ajuste si besoin
-let currentLocation = 'montreuil'; // Commence par Montreuil
+const toulouseZoom = 15; // 
+let currentLocation = 'montreuil'; // Commencer par Montreuil
 
+// Permet de basculer entre les deux localisations géographiques
 function toggleLocation() {
     const locationButton = document.getElementById('toggle-location-btn');
     if (currentLocation === 'montreuil') {
@@ -340,31 +343,31 @@ function toggleLocation() {
     }
 }
 
-const map = L.map('map').setView(montreuilView, montreuilZoom); // Initialiser la carte sur Montreuil
-const sidebar = document.getElementById('sidebar');
-const proxemicView = document.getElementById('proxemic-view');
-let allLayers = [];
-let dataGeojson = [];
-let datamGeojson = [];
-let isMapView = true;
-let patterns = {}; // Objet pour stocker les patterns { patternKey: { name: '...', elements: ['N001', ...], criteria: {...} } }
-let patternNames = {}; // Objet pour stocker les noms des patterns { patternKey: 'Nom du pattern' }
+    const map = L.map('map').setView(montreuilView, montreuilZoom); // Initialiser la carte sur Montreuil
+    const sidebar = document.getElementById('sidebar');
+    const proxemicView = document.getElementById('proxemic-view');
+    let allLayers = [];
+    let dataGeojson = [];
+    let datamGeojson = [];
+    let isMapView = true;
+    let patterns = {}; // Objet pour stocker les patterns 
+    let patternNames = {}; // Objet pour stocker les noms des patterns
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors, © CartoDB'
-}).addTo(map);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors, © CartoDB'
+    }).addTo(map);
 
-
+// Affiche les détails (sidebar) d’un élément cliqué : spatial, pattern ou discours
 function showDetails(props) {
     closeSidebars(); // Toujours fermer les deux avant
 
     if (props.isPattern) {
         // C'est un pattern
-        document.getElementById('spatial-name').textContent = patternNames[props.patternKey] || 'Pattern sans nom'; // Utiliser patternNames avec la clé des critères
+        document.getElementById('spatial-name').textContent = patternNames[props.patternKey] || 'Pattern sans nom'; 
 
         const spatialIdElement = document.getElementById('spatial-id');
-        spatialIdElement.textContent = props.elements.join(', '); // Afficher les IDs des éléments
-        spatialIdElement.parentElement.querySelector('strong').textContent = 'Fragments:'; // Modifier l'intitulé
+        spatialIdElement.textContent = props.elements.join(', '); 
+        spatialIdElement.parentElement.querySelector('strong').textContent = 'Fragments:'; 
 
         const spatialDescriptionElement = document.getElementById('spatial-description');
         spatialDescriptionElement.textContent = `Basé sur les critères communs : ${Object.keys(props.criteria).filter(key => props.criteria[key]).join(', ')}`;
@@ -372,7 +375,7 @@ function showDetails(props) {
         const spatialPhotosElement = document.getElementById('spatial-photos');
         spatialPhotosElement.innerHTML = ''; // Effacer les anciennes photos
 
-        // Récupérer les détails de chaque élément du pattern et afficher une miniature
+    
         [...dataGeojson, ...datamGeojson].forEach(feature => {
             if (props.elements.includes(feature.properties.id)) {
                 const elementDiv = document.createElement('div');
@@ -409,7 +412,7 @@ elementDiv.appendChild(img);
         document.getElementById('spatial-sidebar').style.display = 'block';
 
     } else if (props.isDiscourse) {
-        // C'est un discours (inchangé)
+        // C'est un discours 
         document.getElementById('discourse-name').textContent = props.titre || '';
         document.getElementById('discourse-author').textContent = props.auteur || '';
         document.getElementById('discourse-date').textContent = props.date || '';
@@ -419,7 +422,7 @@ elementDiv.appendChild(img);
         document.getElementById('discourse-text').textContent = props.contenu || '';
         document.getElementById('discourse-sidebar').style.display = 'block';
     } else {
-        // C'est un élément spatial (inchangé)
+        // C'est un élément spatial 
         document.getElementById('spatial-name').textContent = props.name || '';
         document.getElementById('spatial-id').textContent = props.id || '';
         document.getElementById('spatial-description').textContent = props.description || '';
@@ -437,6 +440,7 @@ elementDiv.appendChild(img);
     }
 }
 
+// Ferme toutes les barres latérales (sidebar)
 function closeSidebars() {
     document.getElementById('spatial-sidebar').style.display = 'none';
     document.getElementById('discourse-sidebar').style.display = 'none';
@@ -452,6 +456,7 @@ function reopenPatternList() {
     document.getElementById('reopen-pattern-btn').style.display = 'none';
 }
 
+// Applique les filtres d’affichage selon les zones, tonalités et discours cochés
 function applyFilters() {
   const showDiscourses = document.querySelector('.filter-discourses').checked;
   const activeTonalites = Array.from(document.querySelectorAll('.filter-tonalite:checked')).map(el => el.value.toLowerCase());
@@ -492,7 +497,7 @@ const activeZones = Array.from(document.querySelectorAll('.filter-zone:checked')
 
 let patternCounter = 1; // Compteur pour les patterns
 
-
+// Identifie les patterns : groupes d’éléments partageant exactement X critères communs
 function identifyPatterns(features) {
     const criteriaKeys = [
         "frequence_usage_aucun", "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien",
@@ -585,34 +590,36 @@ fetch('contour.geojson')
         }).addTo(map);
     });
 
+    // Chargement des données de Montreuil, puis de celles du Mirail
+
     fetch('data.geojson')
     .then(res => res.json())
     .then(data => {
         dataGeojson = data.features;
-        patterns = identifyPatterns(dataGeojson); // Identifier les patterns après le chargement des données
+        patterns = identifyPatterns(dataGeojson); 
 
         L.geoJSON(data, {
             
             pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
   radius: 6,
-  color: 'red', // Tous les contours en rouge
+  color: 'red', 
   weight: 1,
   opacity: 1,
-  fillColor: 'red', // Tous les fonds en rouge
+  fillColor: 'red', 
   fillOpacity: 0.8
  }),
 style: feature => ({
-    color: 'red',      // couleur du contour
-    weight: 0.8,       // ← contour très fin
-    fillOpacity: 0.3   // facultatif : pour rendre les polygones plus doux
+    color: 'red',      
+    weight: 0.8,       
+    fillOpacity: 0.3   
 }),
             onEachFeature: (feature, layer) => {
-    layer.zone = 'montreuil'; // Ajoute l'étiquette
+    layer.zone = 'montreuil'; 
     allLayers.push(layer);
     layer.on('click', () => showDetails(feature.properties));
 }
         }).addTo(map);
-        // Une fois que la première base de données est chargée, chargez la seconde
+        
         fetch('datam.geojson')
             .then(res => res.json())
             .then(dataM => {
@@ -621,7 +628,7 @@ style: feature => ({
                 L.geoJSON(dataM, {
                     pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
                         radius: 6,
-                        color: 'blue', // Couleur différente pour distinguer datam
+                        color: 'blue', 
                         weight: 1,
                         opacity: 1,
                         fillColor: 'blue',
@@ -633,7 +640,7 @@ style: feature => ({
                     fillOpacity: 0.3
 }), 
                     onEachFeature: (feature, layer) => {
-                    layer.zone = 'mirail'; // Ajoute l'étiquette
+                    layer.zone = 'mirail'; 
                     allLayers.push(layer);
                     layer.on('click', () => showDetails(feature.properties));
 }
@@ -643,7 +650,7 @@ style: feature => ({
                 const allSpatialFeatures = [...dataGeojson, ...datamGeojson].filter(feature => !feature.properties.isDiscourse);
                 patterns = identifyPatterns(allSpatialFeatures);
 
-                // Mise à jour de la vue proxémique initiale
+                // Mise à jour de la vue proxémique
                 if (!isMapView) {
                     showProxemicView();
                 }
@@ -676,8 +683,7 @@ fetch('discours.geojson')
             }
         }).addTo(map);
 
-        // ← ajoute ici
-        applyFilters(); // Ce sera exécuté une fois que les discours sont bien chargés
+        applyFilters(); 
     });
 
 
@@ -707,7 +713,7 @@ function getDiscourseColor(tonalite) {
         case 'neutre':
             return 'gray';
         default:
-            return 'blue'; // couleur par défaut si tonalité inconnue
+            return 'white'; // couleur par défaut ?
     }
 }
 
@@ -786,7 +792,7 @@ function showGalleryView() {
     img.style.height = 'auto';
     img.style.border = '1px solid #999';
     img.style.cursor = 'pointer';
-    img.onclick = () => showDetails(feature.properties); // ← affiche la sidebar
+    img.onclick = () => showDetails(feature.properties); 
     photoRow.appendChild(img);
 });
             }
@@ -806,7 +812,7 @@ function calculatePatternSimilarity(patterns) {
     for (let i = 0; i < patternKeys.length; i++) {
         const key1 = patternKeys[i];
         similarityMatrix[key1] = {};
-        for (let j = 0; j < patternKeys.length; j++) { // Correction ici : j commence à 0
+        for (let j = 0; j < patternKeys.length; j++) { 
             const key2 = patternKeys[j];
             let commonCriteria = 0;
             for (const criteria in patterns[key1].criteria) {
@@ -823,7 +829,9 @@ function calculatePatternSimilarity(patterns) {
 
 let patternThreshold = 5; // seuil pour former les patterns
 
-//methode de Fruchterman-Reingold, mais a reprendre pour avoir que dans le centre de la page avec des div 
+//methode de Fruchterman-Reingold, mais a reprendre pour avoir que dans le centre de la page avec des div ?
+// Vue d'analyse proxémique : spatialise les patterns en fonction de leur nature
+// Trois zones : Espace perçu, conçu, vécu: a tester avec d'autres façons de trier jpense
 
 function showProxemicView() {
     proxemicView.innerHTML = '';
@@ -989,9 +997,10 @@ addLabelWithBackground(svg, positions.vecu.x, positions.vecu.y + 80, "Espace vé
 </script>
 
 <script>
+    // Slider pr ajuster dynamiquement le seuil de critères communs (patternThreshold)
 document.getElementById('similarity-slider').addEventListener('input', function() {
     const value = parseInt(this.value);
-    patternThreshold = value; // ← sert aussi à identifier les patterns !
+    patternThreshold = value; 
     document.getElementById('slider-value').textContent = value;
 
     if (!isMapView) {
