@@ -34,6 +34,7 @@
             background: #000; /* Fond noir */
             z-index: 100; /* Vue proxémique au-dessus de la carte */
             overflow: auto;
+            cursor: grab;
         }
         #sidebar {
             width: 350px;
@@ -199,6 +200,14 @@
             cursor: pointer;
         }
 
+        input[type="checkbox"]:checked {
+    accent-color: black;
+}
+
+input[type="range"] {
+    accent-color: black;
+}
+
     </style>
 </head>
 <body>
@@ -223,47 +232,7 @@
     <label for="similarity-slider">Nombre de critères communs : <span id="slider-value">5</span></label><br>
     <input type="range" id="similarity-slider" min="2" max="15" value="5" step="1">
 </div>
-<div id="pattern-list" style="
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: white;
-    color: black;
-    font-family: 'Consolas', monospace;
-    padding: 10px;
-    max-height: 70vh;
-    overflow-y: auto;
-    z-index: 1050;
-    display: none;
-    width: 300px;
-    font-size: 13px;
-    box-shadow: 0 0 6px rgba(0,0,0,0.2);
-">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-  <strong>Liste des patterns générés :</strong>
-  <button onclick="closePatternList()" style="background: none; border: none; color: rgb(0, 0, 0); font-weight: bold; font-size: 16px; cursor: pointer;">×</button>
-</div>
-<ul id="pattern-items" style="margin-top: 5px; padding-left: 15px;"></ul>
-    <p style="margin-top: 10px; font-size: 12px; color: gray;">
-        Couleur : nombre de critères communs<br>
-        Taille : nombre d'éléments concernés
-    </p>
-</div>
 
-<button id="reopen-pattern-btn" onclick="reopenPatternList()" style="
-    position: absolute;
-    bottom: 10px;
-    left: 10px;
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: 'Consolas', monospace;
-    background: #000;
-    color: white;
-    border: 1px solid white;
-    cursor: pointer;
-    z-index: 1050;
-    display: none;
-">📋 Voir les patterns</button>
 
 <div id="spatial-sidebar" class="sidebar">
     <button class="close-btn" onclick="closeSidebars()">X</button>
@@ -288,13 +257,51 @@
     <strong>Zones</strong><br>
 <label><input type="checkbox" class="filter-zone" value="montreuil" checked> Montreuil</label><br>
 <label><input type="checkbox" class="filter-zone" value="mirail" checked> Mirail</label><br><br>
-    <strong>Discours (en cours)</strong><br>
-    <label><input type="checkbox" class="filter-discourses" checked> Afficher</label><br>
+    <strong>Discours(en cours)</strong><br>
+    <label><input type="checkbox" class="filter-discourses"> Afficher</label><br>
     <strong>Tonalité du discours</strong><br>
     <label><input type="checkbox" class="filter-tonalite" value="positive" checked> Positive</label><br>
     <label><input type="checkbox" class="filter-tonalite" value="négative" checked> Négative</label><br>
     <label><input type="checkbox" class="filter-tonalite" value="neutre" checked> Neutre</label><br>
    </div>
+
+   <div id="criteria-legend" style="position: absolute;  display: none; bottom: 60px; left: 10px; width: 320px; background: white; border: 1px solid #ccc; padding: 10px; font-size: 12px; z-index: 1050; overflow-y: auto; max-height: 50vh;">
+    <strong>Légende des critères</strong><br><br>
+    <em>Espace perçu (usage)</em><br>
+    - Fréquence d’usage : ponctuel, régulier, quotidien<br>
+    - Mode d’usage : prévu, détourné, créatif<br>
+    - Intensité d’usage : faible, moyenne, forte, saturée<br><br>
+
+    <em>Espace conçu</em><br>
+    - Échelle : micro, méso, macro<br>
+    - Origine de la forme : institutionnelle, singulière, collective<br>
+    - Accessibilité : libre, semi-ouverte, fermée<br>
+    - Visibilité : caché, visible, exposé<br><br>
+
+    <em>Espace vécu (expérience)</em><br>
+    - Acteurs visibles : habitant·e, institution, collectif, invisible<br>
+    - Rapport affectif / symbolique
+</div>
+
+<button id="toggle-legend-btn" style="
+    position: absolute;
+    bottom: 20px;
+    left: 10px;
+    z-index: 1050;
+    background-color: #000;
+    color: white;
+    padding: 10px;
+    border: 1px solid white;
+    cursor: pointer;
+    font-family: 'Consolas', monospace;
+">Légende</button>
+
+<script>
+document.getElementById('toggle-legend-btn').addEventListener('click', () => {
+    const legend = document.getElementById('criteria-legend');
+    legend.style.display = (legend.style.display === 'none' || legend.style.display === '') ? 'block' : 'none';
+});
+</script>
 
 <button class="view-toggle-btn" onclick="toggleView()">Passer à la vue proxémique</button>
 <button id="gallery-toggle-btn" class="view-toggle-btn" style="top: 90px; display: none;" onclick="toggleGallery()">Galerie photo</button>
@@ -594,9 +601,11 @@ fetch('contour.geojson')
   fillColor: 'red', // Tous les fonds en rouge
   fillOpacity: 0.8
  }),
- style: feature => ({
-  color: 'red' // Assurez-vous que les formes (si vous en avez) sont aussi rouges par défaut
- }),
+style: feature => ({
+    color: 'red',      // couleur du contour
+    weight: 0.8,       // ← contour très fin
+    fillOpacity: 0.3   // facultatif : pour rendre les polygones plus doux
+}),
             onEachFeature: (feature, layer) => {
     layer.zone = 'montreuil'; // Ajoute l'étiquette
     allLayers.push(layer);
@@ -619,12 +628,14 @@ fetch('contour.geojson')
                         fillOpacity: 0.8
                     }),
                     style: feature => ({
-                        color: 'blue' // Couleur différente pour les formes de datam
-                    }),
+                    color: 'blue',
+                    weight: 0.8,
+                    fillOpacity: 0.3
+}), 
                     onEachFeature: (feature, layer) => {
-    layer.zone = 'mirail'; // Ajoute l'étiquette
-    allLayers.push(layer);
-    layer.on('click', () => showDetails(feature.properties));
+                    layer.zone = 'mirail'; // Ajoute l'étiquette
+                    allLayers.push(layer);
+                    layer.on('click', () => showDetails(feature.properties));
 }
                 }).addTo(map);
 
@@ -655,7 +666,7 @@ fetch('discours.geojson')
                 radius: 8,
                 fillColor: 'red',
                 color: 'red',
-                weight: 0, // <- pas de contour pour les points aussi
+                weight: 0,
                 opacity: 1,
                 fillOpacity: 0.7
             }),
@@ -664,7 +675,11 @@ fetch('discours.geojson')
                 layer.on('click', () => showDetails(feature.properties));
             }
         }).addTo(map);
+
+        // ← ajoute ici
+        applyFilters(); // Ce sera exécuté une fois que les discours sont bien chargés
     });
+
 
 document.querySelectorAll('.filter-discourses, .filter-tonalite, .filter-zone').forEach(cb => {
   cb.addEventListener('change', () => {
@@ -806,32 +821,12 @@ function calculatePatternSimilarity(patterns) {
 }
 
 
-function getColorByCriteriaCount(count) {
-    if (count >= 12) return '#a50f15';
-    if (count >= 9) return '#de2d26';
-    if (count >= 6) return '#fb6a4a';
-    if (count >= 3) return '#fcae91';
-    return '#fee5d9';
-}
-
 let patternThreshold = 5; // seuil pour former les patterns
-let similarityThreshold = 5; // seuil pour dessiner les liens
-
 
 //methode de Fruchterman-Reingold, mais a reprendre pour avoir que dans le centre de la page avec des div 
 
 function showProxemicView() {
     proxemicView.innerHTML = '';
-    document.getElementById('pattern-items').innerHTML = '';
-    document.getElementById('pattern-list').style.display = 'none';
-    document.getElementById('reopen-pattern-btn').style.display = 'block';
-
-
-    Object.entries(patterns).forEach(([key, pattern]) => {
-        const li = document.createElement('li');
-        li.textContent = `${key} (${pattern.elements.length}) — ${Object.keys(pattern.criteria).map(k => k.replaceAll('_', ' ')).join(', ')}`;
-        document.getElementById('pattern-items').appendChild(li);
-    });
 
     const viewWidth = proxemicView.offsetWidth;
     const viewHeight = proxemicView.offsetHeight;
@@ -888,36 +883,18 @@ function showProxemicView() {
         };
     });
 
-    const svg = d3.select("#proxemic-view").append("svg")
-        .attr("width", viewWidth)
-        .attr("height", viewHeight);
+const svgWidth = viewWidth * 2;
+const svgHeight = viewHeight * 2;
 
-    svg.append("text")
-        .attr("x", positions.percu.x)
-        .attr("y", positions.percu.y - 80)
-        .text("Espace perçu (usage)")
-        .style("fill", "white")
-        .style("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "bold");
+const svg = d3.select("#proxemic-view").append("svg")
+    .attr("width", svgWidth)
+    .attr("height", svgHeight)
+    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
+    .call(d3.zoom().on("zoom", function (event) {
+        svg.attr("transform", event.transform);
+    }))
+    .append("g");
 
-    svg.append("text")
-        .attr("x", positions.concu.x)
-        .attr("y", positions.concu.y - 80)
-        .text("Espace conçu")
-        .style("fill", "white")
-        .style("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "bold");
-
-    svg.append("text")
-        .attr("x", positions.vecu.x)
-        .attr("y", positions.vecu.y + 80)
-        .text("Espace vécu (expérience)")
-        .style("fill", "white")
-        .style("text-anchor", "middle")
-        .style("font-size", "14px")
-        .style("font-weight", "bold");
 
     const simulation = d3.forceSimulation(patternData)
         .force("x", d3.forceX(d => positions[d.category].x).strength(0.1))
@@ -934,21 +911,50 @@ function showProxemicView() {
         .attr("transform", d => `translate(${d.x},${d.y})`);
 
     patternNodes.append("circle")
-        .attr("r", d => radiusScale(d))
-        .style("fill", d => getColorByCriteriaCount(Object.keys(d.criteria).length))
-        .style("stroke", "black")
-        .style("cursor", "pointer")
-        .on("click", function(event, d) {
-            showDetails({ isPattern: true, patternKey: d.id, elements: d.elements, criteria: d.criteria });
-        });
+    .attr("r", d => radiusScale(d))
+    .style("fill", "#333")
+    .style("stroke", "black")
+    .style("cursor", "pointer")
+    .on("click", function(event, d) {
+        showDetails({ isPattern: true, patternKey: d.id, elements: d.elements, criteria: d.criteria });
+    });
 
     patternNodes.append("text")
-        .attr("y", d => -(radiusScale(d) + 4))
         .style("text-anchor", "middle")
-        .style("font-size", "11px")
+        .style("font-size", "12px")
         .style("fill", "#fff")
         .style("font-weight", "bold")
-        .text(d => `${d.name} (${d.elements.length})`);
+        .text(d => d.name);
+
+        function addLabelWithBackground(svg, x, y, textContent) {
+    const group = svg.append("g").attr("transform", `translate(${x}, ${y})`);
+
+    const text = group.append("text")
+        .text(textContent)
+        .attr("x", 0)
+        .attr("y", 0)
+        .style("fill", "white")
+        .style("font-size", "14px")
+        .style("font-weight", "bold")
+        .style("text-anchor", "middle")
+        .attr("dominant-baseline", "middle");
+
+    const bbox = text.node().getBBox();
+
+    group.insert("rect", "text")
+        .attr("x", bbox.x - 6)
+        .attr("y", bbox.y - 2)
+        .attr("width", bbox.width + 12)
+        .attr("height", bbox.height + 4)
+        .attr("fill", "black")
+        .attr("rx", 3)
+        .attr("ry", 3);
+}
+
+addLabelWithBackground(svg, positions.percu.x, positions.percu.y - 80, "Espace perçu (usage)");
+addLabelWithBackground(svg, positions.concu.x, positions.concu.y - 80, "Espace conçu");
+addLabelWithBackground(svg, positions.vecu.x, positions.vecu.y + 80, "Espace vécu (expérience)");
+
 }
 
 
@@ -976,6 +982,7 @@ function showProxemicView() {
     closeAbout.addEventListener('click', () => {
       aboutBox.style.display = 'none';
     });
+    applyFilters(); 
   });
 
 
@@ -984,7 +991,6 @@ function showProxemicView() {
 <script>
 document.getElementById('similarity-slider').addEventListener('input', function() {
     const value = parseInt(this.value);
-    similarityThreshold = value;
     patternThreshold = value; // ← sert aussi à identifier les patterns !
     document.getElementById('slider-value').textContent = value;
 
