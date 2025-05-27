@@ -50,14 +50,15 @@
         }
         #filters {
             position: absolute;
-            top: 10px;
+            color: white;
+            top: 40px;
             left: 10px;
-            background: white;
+            background: rgb(0, 0, 0);
             padding: 10px;
             z-index: 1000;
             max-height: 90vh;
             overflow-y: auto;
-            border: 1px solid #ccc;
+            border: 1px solid #ffffff;
         }
         .photo {
             width: 100%;
@@ -135,7 +136,7 @@
     border-left: 1px solid #ccc;
     display: none;
     position: absolute;
-    top: 10%;
+    top: 15%;
     right: 0;
     z-index: 200;
     max-height: 80vh; 
@@ -208,9 +209,64 @@ input[type="range"] {
     accent-color: black;
 }
 
+.discourse-marker {
+    z-index: 9999 !important;
+}
+
+
+/* Conteneur de la barre d'onglets */
+.navbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-end;
+    background-color: #000;
+    border-bottom: 2px solid #444;
+    padding-left: 10px;
+    gap: 2px;
+    font-family: 'Consolas', monospace;
+}
+
+/* Boutons onglets */
+.tab-btn {
+    background-color: #111;
+    color: white;
+    border: 1px solid #444;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    padding: 10px 18px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Consolas', monospace;
+    transition: background-color 0.2s ease;
+}
+
+/* Onglet actif */
+.tab-btn.active {
+    background-color: #fff;
+    color: #000;
+    font-weight: bold;
+    position: relative;
+    top: 2px;
+    z-index: 2;
+    border-color: #888;
+    box-shadow: 0 -2px 5px rgba(255,255,255,0.2);
+}
+
     </style>
 </head>
 <body>
+
+<div id="navbar" class="navbar">
+  <button class="tab-btn active" data-view="map">Carte</button>
+  <button class="tab-btn" data-view="proxemic">Patterns</button>
+  <button class="tab-btn" data-view="gallery">Galerie des patterns</button>
+  <button class="tab-btn" data-view="critical">Acteurs et discours</button>
+</div>
+
 
 <div id="map"></div>
 <div id="proxemic-view"></div>
@@ -224,11 +280,11 @@ input[type="range"] {
     background: white;
     overflow-y: auto;
     z-index: 100;
-    padding: 50px;
+    padding: 80px;
     box-sizing: border-box;
 ">
 </div>
-<div id="similarity-controls" style="display:none; position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: white; padding: 10px; z-index: 1050; border: 1px solid #ccc;">
+<div id="similarity-controls" style="display:none; position: absolute; top: 40px; left: 50%; color: white; transform: translateX(-50%); background: rgb(0, 0, 0); padding: 10px; z-index: 1050; border: 1px solid #ccc;">
     <label for="similarity-slider">Nombre de critères communs : <span id="slider-value">5</span></label><br>
     <input type="range" id="similarity-slider" min="2" max="15" value="5" step="1">
 </div>
@@ -248,21 +304,29 @@ input[type="range"] {
     <p><strong>Auteur :</strong> <span id="discourse-author"></span></p>
     <p><strong>Date :</strong> <span id="discourse-date"></span></p>
     <p><strong>Source :</strong> <span id="discourse-source"></span></p>
-    <p><strong>Tonalité :</strong> <span id="discourse-tonalite"></span></p>
-    <p><strong>Temps :</strong> <span id="discourse-temps"></span></p>
     <p id="discourse-text"></p>
+</div>
+
+<div id="critical-view" style="
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 600px;
+    background: white;
+    z-index: 100;
+    padding: 0;
+    box-sizing: border-box;
+    overflow: hidden;
+">
 </div>
 
 <div id="filters">
     <strong>Zones</strong><br>
 <label><input type="checkbox" class="filter-zone" value="montreuil" checked> Montreuil</label><br>
-<label><input type="checkbox" class="filter-zone" value="mirail" checked> Mirail</label><br><br>
-    <strong>Discours(en cours)</strong><br>
-    <label><input type="checkbox" class="filter-discourses"> Afficher</label><br>
-    <strong>Tonalité du discours</strong><br>
-    <label><input type="checkbox" class="filter-tonalite" value="positive" checked> Positive</label><br>
-    <label><input type="checkbox" class="filter-tonalite" value="négative" checked> Négative</label><br>
-    <label><input type="checkbox" class="filter-tonalite" value="neutre" checked> Neutre</label><br>
+<label><input type="checkbox" class="filter-zone" value="mirail" checked> Mirail</label><br>
    </div>
 
    <div id="criteria-legend" style="position: absolute;  display: none; bottom: 60px; left: 10px; width: 320px; background: white; border: 1px solid #ccc; padding: 10px; font-size: 12px; z-index: 1050; overflow-y: auto; max-height: 50vh;">
@@ -296,6 +360,7 @@ input[type="range"] {
     font-family: 'Consolas', monospace;
 ">Légende</button>
 
+
 <script>
 document.getElementById('toggle-legend-btn').addEventListener('click', () => {
     const legend = document.getElementById('criteria-legend');
@@ -303,8 +368,6 @@ document.getElementById('toggle-legend-btn').addEventListener('click', () => {
 });
 </script>
 
-<button class="view-toggle-btn" onclick="toggleView()">Passer à la vue proxémique</button>
-<button id="gallery-toggle-btn" class="view-toggle-btn" style="top: 90px; display: none;" onclick="toggleGallery()">Galerie photo</button>
 <button id="toggle-location-btn" class="view-toggle-btn" onclick="toggleLocation()">Voir Toulouse</button>
 
 <div id="footer">
@@ -321,6 +384,9 @@ document.getElementById('toggle-legend-btn').addEventListener('click', () => {
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+
+let currentView = 'map';
+
     // Initialisation de la carte sur Montreuil avec Leaflet
     // Les vues peuvent alterner entre Montreuil et Toulouse
 const montreuilView = [48.8710, 2.4330];
@@ -352,6 +418,8 @@ function toggleLocation() {
     let isMapView = true;
     let patterns = {}; // Objet pour stocker les patterns 
     let patternNames = {}; // Objet pour stocker les noms des patterns
+    map.createPane('pane-discours');
+    map.getPane('pane-discours').style.zIndex = 650; // plus que les autres couches
 
     L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors, © CartoDB'
@@ -413,14 +481,12 @@ elementDiv.appendChild(img);
 
     } else if (props.isDiscourse) {
         // C'est un discours 
-        document.getElementById('discourse-name').textContent = props.titre || '';
-        document.getElementById('discourse-author').textContent = props.auteur || '';
-        document.getElementById('discourse-date').textContent = props.date || '';
-        document.getElementById('discourse-source').textContent = props.source || '';
-        document.getElementById('discourse-tonalite').textContent = props.tonalite || '';
-        document.getElementById('discourse-temps').textContent = props.temps || '';
-        document.getElementById('discourse-text').textContent = props.contenu || '';
-        document.getElementById('discourse-sidebar').style.display = 'block';
+        document.getElementById('discourse-name').textContent = props.id || 'Discours';
+     document.getElementById('discourse-author').textContent = props.auteur || '';
+    document.getElementById('discourse-date').textContent = props.date || '';
+    document.getElementById('discourse-source').textContent = props.source || '';
+    document.getElementById('discourse-text').textContent = props.contenu || '';
+    document.getElementById('discourse-sidebar').style.display = 'block';
     } else {
         // C'est un élément spatial 
         document.getElementById('spatial-name').textContent = props.name || '';
@@ -458,42 +524,53 @@ function reopenPatternList() {
 
 // Applique les filtres d’affichage selon les zones, tonalités et discours cochés
 function applyFilters() {
-  const showDiscourses = document.querySelector('.filter-discourses').checked;
-  const activeTonalites = Array.from(document.querySelectorAll('.filter-tonalite:checked')).map(el => el.value.toLowerCase());
-const activeZones = Array.from(document.querySelectorAll('.filter-zone:checked')).map(cb => cb.value);
+ const showDiscourses = true;
+  const activeZones = Array.from(document.querySelectorAll('.filter-zone:checked')).map(cb => cb.value);
 
   allLayers.forEach(layer => {
-   const props = layer.feature.properties;
-   const isDiscourse = props.isDiscourse;
-   let showLayer = false;
+    const props = layer.feature.properties;
+    const isDiscourse = props.isDiscourse;
+    let showLayer = false;
 
-   if (isDiscourse) {
-    const tonalite = props.tonalite?.toLowerCase() || '';
-    showLayer = showDiscourses && activeTonalites.includes(tonalite);
-   } else {
-    // Pour les éléments non-discours, ils sont toujours affichés
-    showLayer = true;
-    showLayer = activeZones.includes(layer.zone);
-   }
+    if (isDiscourse) {
+      showLayer = showDiscourses;
+    } else {
+      showLayer = activeZones.includes(layer.zone);
+    }
 
-   if (showLayer) {
-    if (!map.hasLayer(layer)) {
-     layer.addTo(map);
+    if (showLayer) {
+      if (!map.hasLayer(layer)) {
+        layer.addTo(map);
+      }
+    } else {
+      if (map.hasLayer(layer)) {
+        map.removeLayer(layer);
+      }
     }
-   } else {
-    if (map.hasLayer(layer)) {
-     map.removeLayer(layer);
-    }
-   }
   });
 
-  // Si on est en vue proxémique, ré-identifier et redessiner
-  if (!isMapView) {
-   const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
-   patterns = identifyPatterns(visibleFeatures);
-   showProxemicView();
+  // Recalcule TOUJOURS les patterns sur les éléments visibles
+  const visibleFeatures = allLayers
+    .filter(layer => map.hasLayer(layer))
+    .map(layer => layer.feature)
+    .filter(f => !f.properties.isDiscourse); // exclut les discours du calcul des patterns
+
+  patterns = identifyPatterns(visibleFeatures);
+
+  // Rafraîchit la vue si ce n’est pas la carte
+  if (currentView === 'proxemic') {
+    showProxemicView();
+  } else if (currentView === 'gallery') {
+    showGalleryView();
   }
- }
+
+  // Ramène les discours au premier plan si nécessaire
+  if (discoursLayer) {
+    discoursLayer.bringToFront();
+  }
+}
+
+
 
 let patternCounter = 1; // Compteur pour les patterns
 
@@ -658,64 +735,53 @@ style: feature => ({
     });
 
 
-fetch('discours.geojson')
-    .then(res => res.json())
-    .then(data => {
-        L.geoJSON(data, {
-            style: feature => ({
-                color: getDiscourseColor(feature.properties.tonalite),
-                fillColor: getDiscourseColor(feature.properties.tonalite),
-                weight: 1,
-                fill: 0.5,
-                dashArray: '5,10'
-            }),
-            pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-                radius: 8,
-                fillColor: 'red',
-                color: 'red',
-                weight: 0,
-                opacity: 1,
-                fillOpacity: 0.7
-            }),
-            onEachFeature: (feature, layer) => {
-                allLayers.push(layer);
-                layer.on('click', () => showDetails(feature.properties));
-            }
-        }).addTo(map);
+let discoursLayer = null;
 
-        applyFilters(); 
+fetch('discours.geojson')
+  .then(res => res.json())
+  .then(data => {
+    discoursLayer = L.geoJSON(data, {
+        pane: 'pane-discours', // ← ICI
+      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+        radius: 5,
+        fillColor: 'white',
+        color: 'white',
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+      }),
+      onEachFeature: (feature, layer) => {
+        allLayers.push(layer);
+        layer.feature = feature; // pour garder le lien
+        layer.on('click', () => showDetails(feature.properties));
+      }
     });
 
+    discoursLayer.addTo(map); // IMPORTANT : ajouté une première fois
+    applyFilters(); // met à jour après ajout
+  });
 
-document.querySelectorAll('.filter-discourses, .filter-tonalite, .filter-zone').forEach(cb => {
+
+document.querySelectorAll('.filter-zone').forEach(cb => {
   cb.addEventListener('change', () => {
     applyFilters();
 
-    if (!isMapView) {
+    if (currentView === 'proxemic' || currentView === 'gallery') {
       const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
       patterns = identifyPatterns(visibleFeatures);
 
-      if (isGalleryView) {
+      if (currentView === 'gallery') {
         showGalleryView();
-      } else {
+      } else if (currentView === 'proxemic') {
         showProxemicView();
       }
+    } else if (currentView === 'critical') {
+      showCriticalView(); // ← met à jour la vue critique aussi
     }
   });
 });
 
-function getDiscourseColor(tonalite) {
-    switch (tonalite) {
-        case 'positive':
-            return 'green';
-        case 'négative':
-            return 'red';
-        case 'neutre':
-            return 'gray';
-        default:
-            return 'white'; // couleur par défaut ?
-    }
-}
+
 
 function toggleView() {
     const isMapVisible = map._container.style.display !== 'none';
@@ -869,10 +935,10 @@ function showProxemicView() {
     }
 
     const positions = {
-        percu: { x: viewWidth * 0.25, y: viewHeight * 0.25 },
-        concu: { x: viewWidth * 0.75, y: viewHeight * 0.25 },
-        vecu: { x: viewWidth * 0.5, y: viewHeight * 0.75 }
-    };
+    percu: { x: viewWidth * 0.25, y: viewHeight * 0.35 },
+    concu: { x: viewWidth * 0.75, y: viewHeight * 0.35 },
+    vecu: { x: viewWidth * 0.5, y: viewHeight * 0.80 }
+};
 
     const radiusScale = d => 8 + d.elements.length * 2;
     const collisionPadding = 4;
@@ -891,8 +957,8 @@ function showProxemicView() {
         };
     });
 
-const svgWidth = viewWidth * 2;
-const svgHeight = viewHeight * 2;
+const svgWidth = viewWidth * 2.5;
+const svgHeight = viewHeight * 2.5;
 
 const svg = d3.select("#proxemic-view").append("svg")
     .attr("width", svgWidth)
@@ -965,6 +1031,217 @@ addLabelWithBackground(svg, positions.vecu.x, positions.vecu.y + 80, "Espace vé
 
 }
 
+function toggleCriticalView() {
+    const critView = document.getElementById('critical-view');
+    const isVisible = critView.style.display !== 'none';
+
+    critView.style.display = isVisible ? 'none' : 'block';
+    map._container.style.display = isVisible ? 'block' : 'none';
+    proxemicView.style.display = 'none';
+    document.getElementById('gallery-view').style.display = 'none';
+    document.getElementById('similarity-controls').style.display = 'none';
+    
+    if (!isVisible) {
+        showCriticalView();
+    }
+}
+
+function showCriticalView() {
+    const positionCounter = {};  // pour compter les discours sur chaque position logique
+    const spacing = 21;          // distance de décalage
+    const critView = document.getElementById('critical-view');
+    critView.innerHTML = ''; // Nettoyer
+
+    const width = 600;
+    const height = 600;
+    const padding = 70;
+
+    const svg = d3.select("#critical-view").append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+const g = svg.append("g").attr("transform", "translate(0,0)")
+    .append("g")
+    .attr("transform", `translate(${width * 0.1}, ${height * 0.1})`);
+
+    const xScale = d3.scaleLinear().domain([0, 5]).range([padding, width - padding]);
+    const yScale = d3.scaleLinear().domain([0, 5]).range([height - padding, padding]);
+
+    // Axes
+    svg.append("g")
+        .attr("transform", `translate(0, ${height - padding})`)
+        .call(d3.axisBottom(xScale).ticks(5));
+
+    svg.append("g")
+        .attr("transform", `translate(${padding}, 0)`)
+        .call(d3.axisLeft(yScale).ticks(5));
+
+    // Étiquettes
+    svg.append("text").text("Passif → Transformateur")
+        .attr("x", width / 2)
+        .attr("y", height - 10)
+        .attr("text-anchor", "middle");
+
+    svg.append("text").text("Institutionnel → Autonome")
+        .attr("transform", "rotate(-90)")
+        .attr("x", -height / 2)
+        .attr("y", 15)
+        .attr("text-anchor", "middle");
+
+    // Points
+    if (discoursLayer) {
+    // Récupérer les zones sélectionnées
+    const activeZones = Array.from(document.querySelectorAll('.filter-zone:checked')).map(cb => cb.value);
+
+    discoursLayer.eachLayer(layer => {
+        const props = layer.feature.properties;
+        const id = props.id || '';
+
+        // Filtrage Montreuil / Mirail
+        const isMontreuil = id.startsWith('N');
+        const isMirail = id.startsWith('M');
+        const zoneAccepted = (isMontreuil && activeZones.includes('montreuil')) || 
+                             (isMirail && activeZones.includes('mirail'));
+
+        if (!zoneAccepted) return;
+
+        const x = +props.passif_transformateur;
+        const y = +props.istit_autonome;
+        const positionsTaken = {};
+        const key = `${x}-${y}`;
+        let cx = xScale(x);
+        let cy = yScale(y);
+
+        // Si déjà pris, on applique un léger offset
+        if (positionsTaken[key]) {
+            cx += Math.random() * 10 - 5;
+            cy += Math.random() * 10 - 5;
+        }
+        positionsTaken[key] = true;
+
+
+            const color = id.startsWith("N") ? "red" : "blue";
+
+            if (typeof x === 'number' && typeof y === 'number') {
+                const xKey = `${x}`;
+const yKey = `${y}`;
+const key = `${xKey},${yKey}`;
+
+const baseX = xScale(x);
+const baseY = yScale(y);
+
+if (!positionCounter[key]) {
+    positionCounter[key] = 0;
+}
+const index = positionCounter[key]++;
+const angle = index * 30 * Math.PI / 180; // 30°, 60°, etc.
+
+const cx = baseX + spacing * index * Math.cos(angle);
+const cy = baseY + spacing * index * Math.sin(angle);
+
+const group = svg.append("g").attr("transform", `translate(${cx},${cy})`);
+
+                group.append("circle")
+                    .attr("r", 10)
+                    .attr("fill", color)
+                    .style("cursor", "pointer")
+                    .on("click", () => showDetails(props));
+
+                const fullText = props.acteur || '';
+const maxCharsPerLine = 20;  // tu peux ajuster selon largeur souhaitée
+
+const lines = [];
+let currentLine = '';
+
+fullText.split(' ').forEach(word => {
+    if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+        currentLine += ' ' + word;
+    } else {
+        lines.push(currentLine.trim());
+        currentLine = word;
+    }
+});
+if (currentLine) lines.push(currentLine.trim());
+
+const text = group.append("text")
+    .attr("x", 0)
+    .attr("y", -15)
+    .style("font-size", "12px")
+    .style("fill", "#000")
+    .style("text-anchor", "middle")
+    .style("font-family", "Consolas, monospace");
+
+lines.forEach((line, i) => {
+    text.append("tspan")
+        .text(line)
+        .attr("x", 0)
+        .attr("dy", i === 0 ? "0" : "1.2em");
+});
+            }
+        });
+    }
+}
+
+
+function setView(viewId) {
+    currentView = viewId;  // <– nouvelle ligne
+
+    const views = {
+        map: document.getElementById('map'),
+        proxemic: document.getElementById('proxemic-view'),
+        gallery: document.getElementById('gallery-view'),
+        critical: document.getElementById('critical-view'),
+    };
+
+    Object.entries(views).forEach(([key, el]) => {
+        el.style.display = key === viewId ? 'block' : 'none';
+    });
+
+    if (viewId === 'proxemic') showProxemicView();
+    if (viewId === 'gallery') showGalleryView();
+    if (viewId === 'critical') showCriticalView();
+
+    updateInterfaceElements(viewId);
+}
+
+
+
+function updateInterfaceElements(viewId) {
+    const legendBtn = document.getElementById('toggle-legend-btn');
+    const similarityControls = document.getElementById('similarity-controls');
+    const locationBtn = document.getElementById('toggle-location-btn');
+
+    // Légende visible uniquement en vue proxémique
+    legendBtn.style.display = viewId === 'proxemic' ? 'block' : 'none';
+
+    // Sliders visibles en proxémique et galerie
+    similarityControls.style.display = (viewId === 'proxemic' || viewId === 'gallery') ? 'block' : 'none';
+
+    // Bouton "voir Toulouse" uniquement sur la carte
+    locationBtn.style.display = viewId === 'map' ? 'block' : 'none';
+}
+
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        setView(view);
+    });
+});
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Changer la vue
+        const view = btn.dataset.view;
+        setView(view);
+
+        // Mettre à jour l'apparence des onglets
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
+
+
 
 
 </script>
@@ -1003,17 +1280,18 @@ document.getElementById('similarity-slider').addEventListener('input', function(
     patternThreshold = value; 
     document.getElementById('slider-value').textContent = value;
 
-    if (!isMapView) {
-    const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
-    patterns = identifyPatterns(visibleFeatures);
+    if (currentView !== 'map') {
+        const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
+        patterns = identifyPatterns(visibleFeatures);
 
-    if (isGalleryView) {
-        showGalleryView();
-    } else {
-        showProxemicView();
+        if (currentView === 'gallery') {
+            showGalleryView();
+        } else if (currentView === 'proxemic') {
+            showProxemicView();
+        }
     }
-}
 });
+
 </script>
 
 </body>

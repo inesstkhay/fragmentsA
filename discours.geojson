@@ -4,120 +4,308 @@
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [2.41500, 48.86700],
-          [2.41580, 48.86700],
-          [2.41580, 48.86740],
-          [2.41500, 48.86740],
-          [2.41500, 48.86700]
-        ]]
+        "type": "Point",
+        "coordinates": [
+          2.430902435581231,
+          48.8659547827676
+        ]
       },
       "properties": {
-        "titre": "Souvenirs d’un lieu vivant",
-        "contenu": "Il y avait toujours du monde ici, des enfants qui jouaient, des discussions jusque tard le soir.",
-        "grande_categorie": "discours",
-        "auteur": "Mamadou D.",
-        "date": "2021-06-12",
-        "source": "Entretien #5",
-        "tonalite": "positive",
-        "temps": "passé",
+        "id": "ND001",
+        "contenu": "Le manque d'eau, d'ascenseur, de chauffage... c'est pour ça que je dors dans mon salon maintenant, pour avoir moins froid. On paye pour rien! Je vais mettre une banderole pour bien écrire l'immeuble il est insalubre!",
+        "auteur": "Adriana",
+        "acteur": "Adriana",
+        "date": "07/02/2025",
+        "source": "Interview",
+        "zone": "Tour TH2",
+        "istit_autonome": 3,
+        "passif_transformateur": 3,
         "isDiscourse": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [2.41810, 48.86670],
-          [2.41890, 48.86670],
-          [2.41890, 48.86700],
-          [2.41810, 48.86700],
-          [2.41810, 48.86670]
-        ]]
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
       },
       "properties": {
-        "titre": "Inconfort quotidien",
-        "contenu": "Le passage est trop étroit, mal éclairé, et beaucoup évitent de le prendre le soir.",
-        "grande_categorie": "discours",
-        "auteur": "Samira L.",
-        "date": "2024-02-19",
-        "source": "Atelier #1",
-        "tonalite": "négative",
-        "temps": "présent",
+        "id": "ND002",
+        "contenu": "Un des événements que j'ai fait qui est un événement de consultation en pied d'immeuble, on l'a fait le 26-27 février, j'ai envoyé justement des invitations aux élus concernés par la question, donc la culture, la politique de la ville, tous ces trucs-là. Je les ai invités, j'ai eu une réponse d'un élu qui m'a convoqué. Il a voulu être informé sur un sujet de réinformation pour lequel eux-mêmes n'ont pas informé les gens. J'ai trouvé ça marrant parce que sa méfiance vis-à-vis du projet était révélatrice de plein de choses.",
+        "auteur": "Fedo",
+        "acteur": "Fedo",
+        "date": "08/09/2022",
+        "source": "https://youtu.be/oea-iRZSJ1c?si=UZuS1ysoKoePOeko",
+        "zone": "La Noue/Clos Français",
+        "istit_autonome": 5,
+        "passif_transformateur": 4,
         "isDiscourse": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [2.41720, 48.86480],
-          [2.41800, 48.86480],
-          [2.41800, 48.86510],
-          [2.41720, 48.86510],
-          [2.41720, 48.86480]
-        ]]
+        "type": "Point",
+        "coordinates": [
+          2.4344683025273923,
+          48.86532891881157
+        ]
       },
       "properties": {
-        "titre": "Un avenir partagé ?",
-        "contenu": "Si on réussit à aménager cet espace ensemble, il pourrait devenir un jardin pour tous.",
-        "grande_categorie": "discours",
-        "auteur": "Collectif Jeunesse Populaire",
-        "date": "2025-03-08",
-        "source": "Réunion publique",
-        "tonalite": "positive",
-        "temps": "futur",
+        "id": "ND003",
+        "contenu": "Multiples personnes exprimant ne pas ouvrir leur porte aux ouvriers depuis qu'ils ont appris les défauts de rénovation.",
+        "auteur": "Habitants",
+        "acteur": "Habitants",
+        "date": "24/02/2024",
+        "source": "Permanence NPNRU",
+        "zone": "Clos Français",
+        "istit_autonome": 5,
+        "passif_transformateur": 3,
         "isDiscourse": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [2.41630, 48.86550],
-          [2.41710, 48.86550],
-          [2.41710, 48.86590],
-          [2.41630, 48.86590],
-          [2.41630, 48.86550]
-        ]]
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
       },
       "properties": {
-        "titre": "Un constat banal",
-        "contenu": "C’est un lieu de passage comme un autre, pas spécialement utilisé pour autre chose.",
-        "grande_categorie": "discours",
-        "auteur": "Anonyme",
-        "date": "2023-10-11",
-        "source": "Micro-trottoir",
-        "tonalite": "neutre",
-        "temps": "présent",
+        "id": "ND004",
+        "contenu": "Et ensuite, il y a toute la partie un peu plus technique où je vais être là pour tout ce qui est réunion de chantier, installation du chantier, avec les services techniques, pour vérifier qu'il n'y a pas des choses qui vont un peu embêter les gens dans leur cadre de vie.",
+        "auteur": "Zoé",
+        "acteur": "Zoé",
+        "date": "17/04/2024",
+        "source": "Interview",
+        "zone": "Clos Français",
+        "istit_autonome": 1,
+        "passif_transformateur": 4,
         "isDiscourse": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
-        "type": "Polygon",
-        "coordinates": [[
-          [2.41930, 48.86560],
-          [2.42000, 48.86560],
-          [2.42000, 48.86600],
-          [2.41930, 48.86600],
-          [2.41930, 48.86560]
-        ]]
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
       },
       "properties": {
-        "titre": "Des promesses non tenues",
-        "contenu": "On nous avait parlé d’un réaménagement, mais rien n’a changé depuis trois ans.",
-        "grande_categorie": "discours",
-        "auteur": "Claire T.",
-        "date": "2022-09-21",
-        "source": "Entretien #9",
-        "tonalite": "négative",
-        "temps": "passé",
+        "id": "ND005",
+        "contenu": "On diffuse des matchs dans le local (...) et en même temps c'est un lieu de rencontre. Parce ici y'a beaucoup de familles nombreuses, on peut pas tous inviter des potes chez nous. (...) Et c'est génant de rester en bas d'une tour, de fumer, de déranger. Donc le but c'était de reproduire ce que les anciens avaient fait, monter une structure et avoir un local dédié aux jeunes du quartier. ",
+        "auteur": "Cheikh",
+        "acteur": "Cheikh",
+        "date": "07/08/2020",
+        "source": "https://youtu.be/GeHItUpR3N0?t=338",
+        "zone": "La Noue",
+        "istit_autonome": 4,
+        "passif_transformateur": 3,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.432582948879542,
+          48.8647534895222
+        ]
+      },
+      "properties": {
+        "id": "ND006",
+        "contenu": "Il y avait des algéco qui étaient dédiés à ça, ils ont été brûlés en partie. Il y en a un qui a été brûlé en partie. Ça a été une bonne excuse pour ne jamais faire la maison de projet. De ne pas faire de communication, de ne pas faire de réunion publique, de ne pas mettre de poste en interne sur le suivi du chantier.",
+        "auteur": "Siamak",
+        "acteur": "Est Ensemble Habitat",
+        "date": "19/04/2025",
+        "source": "Interview",
+        "zone": "Clos Français",
+        "istit_autonome": 1,
+        "passif_transformateur": 1,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "ND007",
+        "contenu": "Nous, on fait ce travail-là. On appuie le collectif, Appuii on les accompagne de faire à la fois des relevés dans les logements avec des architectes bénévoles qui viennent donc documenter toutes les défaillances, ce soit les moisissures, l'amiante, etc. Et les diagnostics thermiques aussi.",
+        "auteur": "Houaria",
+        "acteur": "APPUII",
+        "date": "20/04/2025",
+        "source": "Interview",
+        "zone": "Clos Français",
+        "istit_autonome": 3,
+        "passif_transformateur": 3,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.430716609289675,
+          48.864109563966025
+        ]
+      },
+      "properties": {
+        "id": "ND008",
+        "contenu": "Réflexion critique sur l'implantation sur le quartier qui \"sort de nulle part\" et qui a été refutée par les \"anciens\" du quartier. Respect pour la parole des anciens qui \"savent de quoi ils parlent\"",
+        "auteur": "Houaria et Lila",
+        "acteur": "On Sème Tous",
+        "date": "28/02/2024",
+        "source": "Informel",
+        "zone": "On Sème Tous",
+        "istit_autonome": 1,
+        "passif_transformateur": 3,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          0.0,
+          0.0
+        ]
+      },
+      "properties": {
+        "id": "ND009",
+        "contenu": "Et aussi, on a mis en place le site internet. Parce qu’il y avait ça aussi, c’était qu’à chaque fois, on faisait des comptes rendus que très peu de gens lisaient. Donc là, on a mis en place le site internet où on monte les sujets.",
+        "auteur": "Baptiste",
+        "acteur": "Conseil Citoyen La Noue Bagnolet",
+        "date": "06/04/2024",
+        "source": "Interview",
+        "zone": "La Noue Bagnolet",
+        "istit_autonome": 5,
+        "passif_transformateur": 3,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.4262697239383613,
+          48.87306110888974
+        ]
+      },
+      "properties": {
+        "id": "ND010",
+        "contenu": "Et quand j’ai commencé a utiliser le terrain, je n’ai pas demandé l’autorisation à la mairie. Et moi, j'ai toujours l'habitude de dire que l'asso, elle s'est faite un peu sur les friches de la rénovation urbaine.",
+        "auteur": "Gilles Amar",
+        "acteur": "La Bergerie des Malassis",
+        "date": "21/04/2024",
+        "source": "Interview",
+        "zone": "Malassis",
+        "istit_autonome": 5,
+        "passif_transformateur": 5,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.3990944173699231,
+          43.56397301822284
+        ]
+      },
+      "properties": {
+        "id": "MD001",
+        "contenu": "Comme pour la piscine Alban Minville, ils devaient la détruire. Alors que pour nous, c'était un équipement qui était primordial, quoi. Et c'est une réussite du Conseil citoyen, ça. On a réussi à la faire maintenir.",
+        "auteur": "Fatima Bettara",
+        "acteur": "Conseil Citoyen de Bellefontaine",
+        "date": "03/04/2024",
+        "source": "Informel",
+        "zone": "Piscine Alban Minville",
+        "istit_autonome": 5,
+        "passif_transformateur": 4,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4039081000258022,
+          43.56935799346349
+        ]
+      },
+      "properties": {
+        "id": "MD002",
+        "contenu": "Au moment de la démolition, je me rappelle qu’il y avait un copain de côté. Et des gens passent, on s’arrête, on regarde, et ils disent : « Moi, mon père, il a travaillé là. Il a fait le chantier. Ça me fait quelque chose ». On passe. Une autre personne dit, « J’y ai habité tant d’années ». Comme ça, les gens devant la démolition parlaient de ce qu’ils ressentaient à ce moment-là. On voyait qu’il y avait une épaisseur, qu’il y avait un rapport, qu’il y avait de la vie. Les gens parlaient de leur vie. Ce n’était pas simplement le béton. Il y avait une présence humaine. Ça disparaît. Il n’y a plus de traces.",
+        "auteur": "Jean Pierre Siksik",
+        "acteur": "Habitants de la Reynerie",
+        "date": "27/03/2025",
+        "source": "Interview",
+        "zone": "Gluck",
+        "istit_autonome": 5,
+        "passif_transformateur": 1,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.3987240697047127,
+          43.56364503845671
+        ]
+      },
+      "properties": {
+        "id": "MD003",
+        "contenu": "On avait une statue, une œuvre d'art qu'on avait au temps des Glorieuses.\r\nEt...Cinquante ans qu'elle est restée là, quand même. Et un jour, on nous l'a enlevée. Elle est partie. Personne ne nous a prévenus.\r",
+        "auteur": "Patricia",
+        "acteur": "Patricia",
+        "date": "14/03/2025",
+        "source": "Interview",
+        "zone": "Statue Monument de Taras Chevtchenko",
+        "istit_autonome": 4,
+        "passif_transformateur": 1,
+        "isDiscourse": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.402583042099991,
+          43.56960618691048
+        ]
+      },
+      "properties": {
+        "id": "MD004",
+        "contenu": "Sur le terrain, factuellement, on a reussi a sauver 100 logements des démolitions: l’immeuble cambert. ",
+        "auteur": "Claire Martin",
+        "acteur": "Contre la Démolition du Mirail",
+        "date": "26/03/2025",
+        "source": "Interview",
+        "zone": "Immeuble Cambert",
+        "istit_autonome": 4,
+        "passif_transformateur": 5,
         "isDiscourse": true
       }
     }
