@@ -484,7 +484,14 @@ elementDiv.appendChild(img);
         document.getElementById('discourse-name').textContent = props.id || 'Discours';
      document.getElementById('discourse-author').textContent = props.auteur || '';
     document.getElementById('discourse-date').textContent = props.date || '';
-    document.getElementById('discourse-source').textContent = props.source || '';
+    const sourceContainer = document.getElementById('discourse-source');
+    const sourceText = props.source || '';
+
+    if (sourceText.startsWith('http')) {
+    sourceContainer.innerHTML = `<a href="${sourceText}" target="_blank" style="color: blue; text-decoration: underline;">${sourceText}</a>`;
+    } else {
+    sourceContainer.textContent = sourceText;
+    }
     document.getElementById('discourse-text').textContent = props.contenu || '';
     document.getElementById('discourse-sidebar').style.display = 'block';
     } else {
@@ -737,28 +744,48 @@ style: feature => ({
 
 let discoursLayer = null;
 
+// Assure que le pane est bien créé AVANT le fetch
+map.createPane('pane-discours');
+map.getPane('pane-discours').style.zIndex = 650;
+
 fetch('discours.geojson')
   .then(res => res.json())
   .then(data => {
     discoursLayer = L.geoJSON(data, {
-        pane: 'pane-discours', // ← ICI
-      pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-        radius: 5,
-        fillColor: 'white',
-        color: 'white',
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.8
-      }),
-      onEachFeature: (feature, layer) => {
-        allLayers.push(layer);
-        layer.feature = feature; // pour garder le lien
-        layer.on('click', () => showDetails(feature.properties));
+      pane: 'pane-discours',
+      pointToLayer: (feature, latlng) => {
+        const visible = L.circleMarker(latlng, {
+          radius: 5,
+          fillColor: 'white',
+          color: 'white',
+          weight: 1,
+          opacity: 1,
+          fillOpacity: 0.8,
+          pane: 'pane-discours'
+        });
+
+        const clickableArea = L.circle(latlng, {
+          radius: 30,
+          color: 'transparent',
+          fillColor: 'transparent',
+          weight: 0,
+          fillOpacity: 0,
+          pane: 'pane-discours'
+        });
+
+        clickableArea.on('click', () => showDetails(feature.properties));
+        visible.on('click', () => showDetails(feature.properties));
+
+        return L.layerGroup([clickableArea, visible]);
+      },
+      onEachFeature: (feature, layerGroup) => {
+        allLayers.push(layerGroup);
+        layerGroup.feature = feature;
       }
     });
 
-    discoursLayer.addTo(map); // IMPORTANT : ajouté une première fois
-    applyFilters(); // met à jour après ajout
+    discoursLayer.addTo(map);
+    applyFilters();
   });
 
 
