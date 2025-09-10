@@ -7906,6 +7906,614 @@
         "acteurs_visibles_invisible": true,
         "rapport_affectif_symbolique": false
       }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.4022253118139076,
+              43.571227591209976
+            ],
+            [
+              1.4022253118139076,
+              43.57115561638088
+            ],
+            [
+              1.4025517199321769,
+              43.57115561638088
+            ],
+            [
+              1.4025517199321769,
+              43.571227591209976
+            ],
+            [
+              1.4022253118139076,
+              43.571227591209976
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "M156",
+        "name": "Conteneurs associatifs",
+        "description": "Remplacement des associations de la dalle Abbal, installé par la mairie",
+        "photos": [
+          "https://i.postimg.cc/vmdbyGJL/M156.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": true,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": true,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": true,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": false,
+        "echelle_meso": true,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": true,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": false,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": true,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": true,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4026224507972245,
+          43.57071392055204
+        ]
+      },
+      "properties": {
+        "id": "M157",
+        "name": "Parking à chariots",
+        "description": "Chariots de transport utilisés par vendeurs du marché sauvage",
+        "photos": [
+          "https://i.postimg.cc/cLchTmB7/M157.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": true,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": true,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": true,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": true,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": true,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.3986752362075094,
+          43.56445309038597
+        ]
+      },
+      "properties": {
+        "id": "M158",
+        "name": "Assises: marches centre Alban Minville",
+        "description": "-",
+        "photos": [
+          "https://i.postimg.cc/RF1ZnWB0/M158.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": true,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": true,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": true,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": true,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.4067347592304031,
+              43.56881116235044
+            ],
+            [
+              1.4066380421076587,
+              43.56874926174956
+            ],
+            [
+              1.4066896245728344,
+              43.56865349088409
+            ],
+            [
+              1.4067895655997518,
+              43.568569399266266
+            ],
+            [
+              1.4069427010452102,
+              43.5685880863027
+            ],
+            [
+              1.4069459249486727,
+              43.56869086489834
+            ],
+            [
+              1.4068363122098333,
+              43.568800650932104
+            ],
+            [
+              1.4067347592304031,
+              43.56881116235044
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "M159",
+        "name": "Assises: Rue Georges Candilis",
+        "description": "-",
+        "photos": [
+          "https://i.postimg.cc/cHzXwLMV/M159.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": true,
+        "mode_usage_prevu": true,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": true,
+        "intensite_usage_forte": false,
+        "echelle_micro": false,
+        "echelle_meso": true,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": true,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": false,
+        "accessibilite_libre": true,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            1.4027961539497085,
+            43.57128018897669
+          ],
+          [
+            1.402814149909915,
+            43.57089627969157
+          ],
+          [
+            1.4027081737003186,
+            43.57085716426812
+          ],
+          [
+            1.402574203775913,
+            43.57067752274011
+          ],
+          [
+            1.402396243726372,
+            43.570592047953824
+          ],
+          [
+            1.4018963559474855,
+            43.57056162469544
+          ],
+          [
+            1.40188635819203,
+            43.57126715058814
+          ],
+          [
+            1.4027921548473046,
+            43.57128308639605
+          ]
+        ]
+      },
+      "properties": {
+        "id": "M160",
+        "name": "Place Abbal : fermée",
+        "description": "Restriction d'accès pour éviter l'installation du marché sauvage",
+        "photos": [
+          "https://i.postimg.cc/nhMKYJMx/M160.jpg"
+        ],
+        "frequence_usage_aucun": true,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": true,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": false,
+        "echelle_meso": false,
+        "echelle_macro": true,
+        "origine_forme_institutionnelle": true,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": false,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": true,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": false,
+        "acteurs_visibles_institution": true,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4024630788450168,
+          43.57010952063692
+        ]
+      },
+      "properties": {
+        "id": "M161",
+        "name": "Pont fermé: Cambert",
+        "description": "Restriction d'accès pré-démolition",
+        "photos": [
+          "https://i.postimg.cc/zXx6G89Y/M161.jpg"
+        ],
+        "frequence_usage_aucun": true,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": true,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": true,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": false,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": true,
+        "visibilite_cachee": false,
+        "visibilite_visible": false,
+        "visibilite_exposee": true,
+        "acteurs_visibles_habitant": false,
+        "acteurs_visibles_institution": true,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.404882468420908,
+          43.572267056226394
+        ]
+      },
+      "properties": {
+        "id": "M162",
+        "name": "Jeu : parc André Messager",
+        "description": "-",
+        "photos": [
+          "https://i.postimg.cc/mk3xwnZ3/M162.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": true,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": true,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": true,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": true,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": false,
+        "accessibilite_libre": true,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": true,
+        "visibilite_exposee": false,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.3978608563760133,
+          43.56155519808638
+        ]
+      },
+      "properties": {
+        "id": "M163",
+        "name": "Réunion bas d'immeuble tintoret pour organisation anti-démolition",
+        "description": "Organisation habitante anti-démolition",
+        "photos": [
+          "https://i.postimg.cc/fLBm9zmY/M163.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": true,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": true,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": true,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": true,
+        "visibilite_exposee": false,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": true,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.3978898284597108,
+          43.56427225011018
+        ]
+      },
+      "properties": {
+        "id": "M164",
+        "name": "Réunion place pétanque 1er mai CPES",
+        "description": "Organisation habitante fête du travail",
+        "photos": [
+          "https://i.postimg.cc/G2GYXFWJ/M164.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": true,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": true,
+        "mode_usage_creatif": false,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": false,
+        "echelle_meso": true,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": true,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": true,
+        "visibilite_exposee": false,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": true,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.403259215649996,
+          43.56980622370307
+        ]
+      },
+      "properties": {
+        "id": "M165",
+        "name": "Point de rencontre: parking Gluck",
+        "description": "-",
+        "photos": [
+          "https://i.postimg.cc/T1hxR0Tn/M165.png"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": false,
+        "frequence_usage_regulier": true,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": true,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": true,
+        "intensite_usage_forte": false,
+        "echelle_micro": true,
+        "echelle_meso": false,
+        "echelle_macro": false,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": true,
+        "accessibilite_fermee": false,
+        "visibilite_cachee": false,
+        "visibilite_visible": true,
+        "visibilite_exposee": false,
+        "acteurs_visibles_habitant": true,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": false,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              1.4034628127586757,
+              43.57040720044566
+            ],
+            [
+              1.4034628127586757,
+              43.57018593242836
+            ],
+            [
+              1.40370034263114,
+              43.57018593242836
+            ],
+            [
+              1.40370034263114,
+              43.57040720044566
+            ],
+            [
+              1.4034628127586757,
+              43.57040720044566
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "id": "M166",
+        "name": "Dalle Abbal: atelier B",
+        "description": "Occupation habitante",
+        "photos": [
+          "https://i.postimg.cc/3Rt75VQK/M166.jpg"
+        ],
+        "frequence_usage_aucun": false,
+        "frequence_usage_ponctuel": true,
+        "frequence_usage_regulier": false,
+        "frequence_usage_quotidien": false,
+        "mode_usage_prevu": false,
+        "mode_usage_detourne": false,
+        "mode_usage_creatif": true,
+        "intensite_usage_aucun": false,
+        "intensite_usage_faible": false,
+        "intensite_usage_moyenne": false,
+        "intensite_usage_forte": false,
+        "echelle_micro": false,
+        "echelle_meso": false,
+        "echelle_macro": true,
+        "origine_forme_institutionnelle": false,
+        "origine_forme_singuliere": false,
+        "origine_forme_collective": true,
+        "accessibilite_libre": false,
+        "accessibilite_semi_ouverte": false,
+        "accessibilite_fermee": true,
+        "visibilite_cachee": true,
+        "visibilite_visible": false,
+        "visibilite_exposee": false,
+        "acteurs_visibles_habitant": false,
+        "acteurs_visibles_institution": false,
+        "acteurs_visibles_collectif": true,
+        "acteurs_visibles_invisible": false,
+        "rapport_affectif_symbolique": false
+      }
     }
   ]
 }

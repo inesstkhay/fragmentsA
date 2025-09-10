@@ -20,19 +20,32 @@ const toulouseView = [43.5675824, 1.4000176];
 const toulouseZoom = 15; // 
 let currentLocation = 'montreuil'; // Commencer par Montreuil
 
+
+let patternThreshold = 5; // seuil pour former les patterns
+
 // Permet de basculer entre les deux localisations géographiques
 function toggleLocation() {
-    const locationButton = document.getElementById('toggle-location-btn');
-    if (currentLocation === 'montreuil') {
-        map.setView(toulouseView, toulouseZoom);
-        locationButton.textContent = 'Voir Montreuil';
-        currentLocation = 'toulouse';
-    } else {
-        map.setView(montreuilView, montreuilZoom);
-        locationButton.textContent = 'Voir Toulouse';
-        currentLocation = 'montreuil';
-    }
+  const locationButton = document.getElementById('toggle-location-btn');
+
+  // Choisit la bonne carte selon la vue courante
+  let targetMap = map; // défaut
+  if (currentView === 'patterns-map' && patternMap) {
+    targetMap = patternMap;
+  } else if ((currentView === 'unit' || currentView === 'unit-view') && unitMap) {
+    targetMap = unitMap;
+  }
+
+  if (currentLocation === 'montreuil') {
+    targetMap.setView(toulouseView, toulouseZoom);
+    locationButton.textContent = 'Voir Montreuil';
+    currentLocation = 'toulouse';
+  } else {
+    targetMap.setView(montreuilView, montreuilZoom);
+    locationButton.textContent = 'Voir Toulouse';
+    currentLocation = 'montreuil';
+  }
 }
+
 
     const map = L.map('map').setView(montreuilView, montreuilZoom); // Initialiser la carte sur Montreuil
     const sidebar = document.getElementById('sidebar');
@@ -50,100 +63,85 @@ function toggleLocation() {
         attribution: '© OpenStreetMap contributors, © CartoDB'
     }).addTo(map);
 
+
+    // ======= ÉTAT CRÉATION D’UNITÉ =======
+let unitCreation = {
+  active: false,
+  // référence aux couches/handlers que l’on désactive/temporairement
+  ringsVisible: true,
+  mouseMoveHandler: null
+};
+let unitMap = null; // la carte dédiée dans l’onglet "Unité de projet"
+let unitLayerGroup = null;   // toutes les unités dessinées
+let unitContextGroup = null; // contexte (contours, base grise, etc.)
+
+
+
 // ============================
 // AFFICHAGE DES DÉTAILS DANS LES SIDEBARS
 // ============================
+
+
+function openSidebar(el) {
+  if (!el) return;
+  el.style.display = 'block';
+  el.style.position = 'fixed';
+  el.style.top = '90px';
+  el.style.right = '10px';
+  el.style.maxHeight = 'calc(100vh - 120px)';
+  el.style.overflowY = 'auto';
+  el.style.zIndex = '4001'; // au-dessus du footer (3000) & des panes Leaflet
+}
+
+
+
+
+
 function showDetails(props) {
-    closeSidebars(); // Toujours fermer les deux avant
+  // on unifie : plus d’ouverture des anciennes sidebars
+  clearAllTabbedTabs(); // exclusif : 1 clic = 1 set d’infos
 
-    if (props.isPattern) {
-        // C'est un pattern
-        document.getElementById('spatial-name').textContent = patternNames[props.patternKey] || 'Pattern sans nom'; 
+  if (props.isPattern) {
+    // appelé depuis proxémie (ou ailleurs) avec patternKey/elements/criteria
+    const key = props.patternKey || 'Pattern';
+    openTab({
+      id: `pattern-${key}`,
+      title: key,
+      kind: 'pattern',
+      render: (panel) => renderPatternPanel(panel, key, {
+        criteria: props.criteria || {},
+        elements: props.elements || []
+      })
+    });
+  } else if (props.isDiscourse) {
+    openTab({
+      id: `disc-${props.id || Math.random().toString(36).slice(2)}`,
+      title: props.id || 'Discours',
+      kind: 'discourse',
+      render: (panel) => renderDiscoursePanel(panel, props)
+    });
+  } else {
+    // fragment "classique"
+    const fid = props.id || Math.random().toString(36).slice(2);
+    openTab({
+      id: `frag-${fid}`,
+      title: props.id || 'Fragment',
+      kind: 'fragment',
+      render: (panel) => renderFragmentPanel(panel, props)
+    });
+  }
 
-        const spatialIdElement = document.getElementById('spatial-id');
-        spatialIdElement.textContent = props.elements.join(', '); 
-        spatialIdElement.parentElement.querySelector('strong').textContent = 'Fragments:'; 
-
-        const spatialDescriptionElement = document.getElementById('spatial-description');
-        spatialDescriptionElement.textContent = `Basé sur les critères communs : ${Object.keys(props.criteria).filter(key => props.criteria[key]).join(', ')}`;
-
-        const spatialPhotosElement = document.getElementById('spatial-photos');
-        spatialPhotosElement.innerHTML = ''; // Effacer les anciennes photos
-
-    
-        [...dataGeojson, ...datamGeojson].forEach(feature => {
-            if (props.elements.includes(feature.properties.id)) {
-                const elementDiv = document.createElement('div');
-                elementDiv.style.display = 'flex';
-                elementDiv.style.alignItems = 'center';
-                elementDiv.style.marginBottom = '5px';
-
-                const img = document.createElement('div');
-            img.style.width = '80px';
-            img.style.height = '60px';
-            img.style.marginRight = '8px';
-            img.style.flexShrink = '0';
-
-                if (feature.properties.photos && feature.properties.photos.length > 0) {
-            img.style.backgroundImage = `url(${feature.properties.photos[0]})`;
-            img.style.backgroundSize = 'cover';
-            img.style.backgroundPosition = 'center';
-            img.style.border = '1px solid #aaa';
-                } else {
-             img.style.backgroundColor = '#ffffff';
-            img.style.border = '1px solid #ddd';
+  // masque les anciennes sidebars (sécurité)
+  document.getElementById('spatial-sidebar').style.display = 'none';
+  document.getElementById('discourse-sidebar').style.display = 'none';
 }
 
-elementDiv.appendChild(img);
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = feature.properties.name || feature.properties.id;
-                elementDiv.appendChild(nameSpan);
-
-                spatialPhotosElement.appendChild(elementDiv);
-            }
-        });
-
-        document.getElementById('spatial-sidebar').style.display = 'block';
-
-    } else if (props.isDiscourse) {
-        // C'est un discours 
-        document.getElementById('discourse-name').textContent = props.id || 'Discours';
-     document.getElementById('discourse-author').textContent = props.auteur || '';
-    document.getElementById('discourse-date').textContent = props.date || '';
-    const sourceContainer = document.getElementById('discourse-source');
-    const sourceText = props.source || '';
-
-    if (sourceText.startsWith('http')) {
-    sourceContainer.innerHTML = `<a href="${sourceText}" target="_blank" style="color: blue; text-decoration: underline;">${sourceText}</a>`;
-    } else {
-    sourceContainer.textContent = sourceText;
-    }
-    document.getElementById('discourse-text').textContent = props.contenu || '';
-    document.getElementById('discourse-sidebar').style.display = 'block';
-    } else {
-        // C'est un élément spatial 
-        document.getElementById('spatial-name').textContent = props.name || '';
-        document.getElementById('spatial-id').textContent = props.id || '';
-        document.getElementById('spatial-description').textContent = props.description || '';
-        const photos = document.getElementById('spatial-photos');
-        photos.innerHTML = '';
-        if (props.photos && props.photos.length) {
-            props.photos.forEach(photo => {
-                const img = document.createElement('img');
-                img.src = photo;
-                img.className = 'photo';
-                photos.appendChild(img);
-            });
-        }
-        document.getElementById('spatial-sidebar').style.display = 'block';
-    }
-}
 
 // Ferme toutes les barres latérales (sidebar)
 function closeSidebars() {
-    document.getElementById('spatial-sidebar').style.display = 'none';
-    document.getElementById('discourse-sidebar').style.display = 'none';
+  document.getElementById('spatial-sidebar').style.display = 'none';
+  document.getElementById('discourse-sidebar').style.display = 'none';
+  clearAllTabbedTabs(); // << ajoute ça
 }
 
 // ============================
@@ -364,6 +362,14 @@ style: feature => ({
                 if (!isMapView) {
                     showProxemicView();
                 }
+
+                combinedFeatures = [...dataGeojson, ...datamGeojson];
+
+if (currentView === 'patterns-map') {
+  initPatternMapOnce();
+  renderPatternBaseGrey();
+  refreshPatternsMap();
+}
             });
     });
 
@@ -431,8 +437,474 @@ document.querySelectorAll('.filter-zone').forEach(cb => {
     } else if (currentView === 'critical') {
       showCriticalView(); // ← met à jour la vue critique aussi
     }
+
+      if (currentView === 'patterns-map') {
+    // La base grise dépend des zones actives, et les contours aussi
+    renderPatternBaseGrey();
+    // Les patterns dépendent aussi du seuil → on recalcule comme proxémie/galerie
+    const visible = [...dataGeojson, ...datamGeojson].filter(f => isFeatureInActiveZones(f) && !f.properties.isDiscourse);
+    patterns = identifyPatterns(visible);
+    refreshPatternsMap();
+  }
   });
 });
+
+// ============================
+// CARTE PATTERNS (nouvelle, indépendante)
+// ============================
+function initPatternMapOnce() {
+  if (patternMap) return; // déjà init
+
+  patternMap = L.map('patterns-map', {
+    zoomControl: true,
+    attributionControl: true
+  }).setView(montreuilView, montreuilZoom);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors, © CartoDB'
+  }).addTo(patternMap);
+
+  patternBaseLayer = L.layerGroup().addTo(patternMap);  // fragments gris
+  patternOverlayGroup = L.layerGroup().addTo(patternMap); // contours colorés
+
+  // Conserver le contour du site si tu le veux aussi sur la carte patterns
+  fetch('data/contour.geojson')
+    .then(r => r.json())
+    .then(contour => {
+      L.geoJSON(contour, {
+        style: {
+          color: '#919090',
+          weight: 2,
+          opacity: 0.8,
+          fillOpacity: 0
+        }
+      }).addTo(patternMap);
+    });
+}
+
+// Couches grises des fragments (réutilise tes GeoJSON)
+function renderPatternBaseGrey() {
+  if (!patternMap) return;
+  patternBaseLayer.clearLayers();
+
+  // Fonction de style gris (points / lignes / polygones)
+  const baseStyle = {
+    color: '#777',
+    weight: 1,
+    opacity: 1,
+    fillColor: '#777',
+    fillOpacity: 0.25
+  };
+
+  const filterActiveZones = feat => isFeatureInActiveZones(feat) && !feat.properties.isDiscourse;
+
+  // Montreuil
+  if (dataGeojson?.length) {
+    L.geoJSON({ type: 'FeatureCollection', features: dataGeojson }, {
+      filter: filterActiveZones,
+      pointToLayer: (f, latlng) => L.circleMarker(latlng, { ...baseStyle, radius: 4 }),
+      style: () => baseStyle,
+      // ... inside L.geoJSON(... onEachFeature)
+onEachFeature: (feature, layer) => {
+  layer.on('click', () => onPatternsMapFragmentClick(feature));
+}
+
+    }).addTo(patternBaseLayer);
+  }
+
+  // Mirail
+  if (datamGeojson?.length) {
+    L.geoJSON({ type: 'FeatureCollection', features: datamGeojson }, {
+      filter: filterActiveZones,
+      pointToLayer: (f, latlng) => L.circleMarker(latlng, { ...baseStyle, radius: 4 }),
+      style: () => baseStyle,
+      // ... inside L.geoJSON(... onEachFeature)
+onEachFeature: (feature, layer) => {
+  layer.on('click', () => onPatternsMapFragmentClick(feature));
+}
+
+    }).addTo(patternBaseLayer);
+  }
+}
+
+
+// Crée (au besoin) un pane dédié à un pattern pour contrôler l'ordre d'empilement
+function ensurePatternPane(patternName, index) {
+  if (patternPanes.has(patternName)) return patternPanes.get(patternName);
+  const paneId = `pane-pattern-${patternName}`;
+  patternMap.createPane(paneId);
+  // Z-index croissant pour séparer visuellement les anneaux superposés
+  patternMap.getPane(paneId).style.zIndex = 600 + index;
+  patternPanes.set(patternName, paneId);
+  return paneId;
+}
+
+// Centre "robuste" de n'importe quelle géométrie (Point, LineString, Polygon...)
+function getFeatureCenter(feature) {
+  // Point → direct
+  if (feature.geometry && feature.geometry.type === 'Point') {
+    const c = feature.geometry.coordinates;
+    return L.latLng(c[1], c[0]);
+  }
+  // Autres → centre de l'emprise
+  const tmp = L.geoJSON(feature);
+  let center;
+  try {
+    center = tmp.getBounds().getCenter();
+  } catch(e) {
+    // fallback très défensif
+    const c = (feature.geometry && feature.geometry.coordinates && feature.geometry.coordinates[0]) || [0,0];
+    center = L.latLng(c[1] || 0, c[0] || 0);
+  }
+  return center;
+}
+
+
+// Redessine les contours colorés en fonction de "patterns" courant et des zones actives
+
+function refreshPatternsMap() {
+  if (!patternMap) return;
+  patternOverlayGroup.clearLayers();
+
+  // Index global id -> Feature
+  if (!combinedFeatures.length) {
+    combinedFeatures = [...(dataGeojson || []), ...(datamGeojson || [])];
+  }
+  const byId = new Map(combinedFeatures.map(f => [f.properties.id, f]));
+
+  // id -> liste des patterns auxquels le fragment appartient (après filtre de zones)
+  const entries = Object.entries(patterns); // [['P1',{...}], ...]
+  const membersByFragment = new Map();
+
+  entries.forEach(([pName, pData]) => {
+    (pData.elements || []).forEach(id => {
+      const f = byId.get(id);
+      if (!f) return;
+      if (f.properties.isDiscourse) return;
+      if (!isFeatureInActiveZones(f)) return;
+      if (!membersByFragment.has(id)) membersByFragment.set(id, []);
+      membersByFragment.get(id).push(pName);
+    });
+  });
+
+  // Paramètres visuels “discrets”
+  const BASE_RADIUS  = 5; // rayon intérieur
+  const RING_SPACING = 3; // écart entre anneaux
+  const RING_WEIGHT  = 2; // épaisseur de trait (fixe)
+
+  // On dessine PAR FRAGMENT : cercles concentriques (un par pattern)
+  membersByFragment.forEach((pList, id) => {
+    const feature = byId.get(id);
+    if (!feature) return;
+
+    // ordre stable : intérieur = plus petit numéro (P1), extérieur = plus grand
+    const rings = pList.slice().sort((a, b) => {
+      const ai = parseInt(String(a).replace('P', ''), 10);
+      const bi = parseInt(String(b).replace('P', ''), 10);
+      return ai - bi; // P1 dedans, Pmax dehors
+    });
+
+    const centerLatLng = getFeatureCenter(feature);
+
+    rings.forEach((pName, idx) => {
+      const color  = colorForPattern(pName);
+      const radius = BASE_RADIUS + idx * RING_SPACING;
+
+      // un pane par anneau pour bien gérer la superposition
+      const pane = ensurePatternPane('ring-' + pName + '-' + id, 600 + idx);
+
+      // ----- contenu de la tooltip -----
+      const fragId   = feature.properties.id || '';
+      const fragName = feature.properties.name || '';
+      const ringsSorted = rings.slice().sort((a,b) => {
+        const ai = parseInt(String(a).replace('P',''), 10);
+        const bi = parseInt(String(b).replace('P',''), 10);
+        return ai - bi;
+      }).join(', ');
+      const tipHtml = `
+        <div class="pt-title">${fragId}${fragName ? ' — ' + fragName : ''}</div>
+        <div class="pt-sub">Appartient aux patterns : ${ringsSorted}</div>
+      `;
+
+      // ----- création + attachements -----
+      const marker = L.circleMarker(centerLatLng, {
+        pane,
+        radius,
+        color,
+        weight: RING_WEIGHT,
+        fillOpacity: 0
+      });
+
+      marker.bindTooltip(tipHtml, {
+        className: 'pattern-tip',   // applique la police Consolas + styles
+        direction: 'top',
+        sticky: true,
+        offset: [0, -6],
+        opacity: 1
+      });
+
+      marker.on('click', () => onPatternsMapFragmentClick(feature));
+
+      marker.addTo(patternOverlayGroup);
+    });
+  });
+}
+
+function startUnitCreation() {
+  setTopTab('patterns');
+  setSubTab('patterns-map');
+  initPatternMapOnce();
+
+  if (unitCreation.active) return;
+  unitCreation.active = true;
+
+  // Masquer les anneaux colorés
+  if (patternOverlayGroup && patternMap.hasLayer(patternOverlayGroup)) {
+    patternMap.removeLayer(patternOverlayGroup);
+    unitCreation.ringsVisible = false;
+  }
+
+  // NEW: feedback bouton
+  const btn = document.getElementById('create-unit-btn');
+  if (btn) {
+    btn.textContent = 'Annuler la création';
+    btn.classList.add('is-armed');
+    btn.setAttribute('aria-pressed', 'true');
+  }
+
+  // Curseur + hint
+  const cont = patternMap.getContainer();
+  cont.classList.add('patterns-creating');
+
+  const hint = document.getElementById('unit-hint');
+  hint.style.display = 'block';
+
+  unitCreation.mouseMoveHandler = (e) => {
+    hint.style.left = e.clientX + 'px';
+    hint.style.top  = e.clientY + 'px';
+  };
+  window.addEventListener('mousemove', unitCreation.mouseMoveHandler);
+}
+
+function stopUnitCreation() {
+  if (!unitCreation.active) return;
+  unitCreation.active = false;
+
+  // Ré-afficher les anneaux
+  if (!unitCreation.ringsVisible && patternOverlayGroup) {
+    patternOverlayGroup.addTo(patternMap);
+    unitCreation.ringsVisible = true;
+  }
+
+  // NEW: remettre le bouton en état normal
+  const btn = document.getElementById('create-unit-btn');
+  if (btn) {
+    btn.textContent = 'Créer une Unité de Projet';
+    btn.classList.remove('is-armed');
+    btn.setAttribute('aria-pressed', 'false');
+  }
+
+  // Enlever curseur + hint
+  const cont = patternMap.getContainer();
+  cont.classList.remove('patterns-creating');
+
+  const hint = document.getElementById('unit-hint');
+  hint.style.display = 'none';
+
+  if (unitCreation.mouseMoveHandler) {
+    window.removeEventListener('mousemove', unitCreation.mouseMoveHandler);
+    unitCreation.mouseMoveHandler = null;
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && unitCreation.active) {
+    stopUnitCreation();
+  }
+});
+
+
+// ============================
+// SIDEBAR À ONGLETS (uniquement pour "patterns-map")
+// ============================
+const Tabbed = {
+  el: null, tabsBar: null, content: null,
+  openTabs: new Map(),     // id -> {btn, panel, kind}
+  activeId: null
+};
+
+function ensureTabbedSidebar() {
+  if (Tabbed.el) return;
+  Tabbed.el      = document.getElementById('tabbed-sidebar');
+  Tabbed.tabsBar = document.getElementById('tabbed-sidebar-tabs');
+  Tabbed.content = document.getElementById('tabbed-sidebar-content');
+}
+
+function showTabbedSidebar() {
+  ensureTabbedSidebar();
+  Tabbed.el.style.display = 'block';
+}
+function hideTabbedSidebarIfEmpty() {
+  if (Tabbed.openTabs.size === 0) {
+    Tabbed.el.style.display = 'none';
+    Tabbed.activeId = null;
+  }
+}
+
+function clearAllTabbedTabs() {
+  ensureTabbedSidebar();
+  // fermer proprement tous les onglets ouverts
+  Array.from(Tabbed.openTabs.keys()).forEach(id => closeTab(id));
+  // et nettoyer les conteneurs (au cas où)
+  Tabbed.tabsBar.innerHTML = '';
+  Tabbed.content.innerHTML = '';
+  Tabbed.activeId = null;
+  Tabbed.el.style.display = 'none';
+}
+
+
+function focusTab(id) {
+  if (!Tabbed.openTabs.has(id)) return;
+  Tabbed.activeId = id;
+  // activer visuellement le bon bouton + panneau
+  Tabbed.openTabs.forEach((rec, key) => {
+    rec.btn.style.background = (key === id) ? '#222' : '#000';
+    rec.btn.style.color      = '#fff';
+    rec.panel.style.display  = (key === id) ? 'block' : 'none';
+  });
+}
+
+function closeTab(id) {
+  const rec = Tabbed.openTabs.get(id);
+  if (!rec) return;
+  rec.btn.remove();
+  rec.panel.remove();
+  Tabbed.openTabs.delete(id);
+  if (Tabbed.activeId === id) {
+    // focus sur le dernier onglet restant
+    const last = Array.from(Tabbed.openTabs.keys()).pop();
+    if (last) focusTab(last);
+  }
+  hideTabbedSidebarIfEmpty();
+}
+
+function makeTabButton(title, id) {
+  const btn = document.createElement('button');
+  btn.textContent = title;
+  btn.title = title;
+  btn.style.cssText = 'border:1px solid #333; background:#000; color:#fff; padding:6px 8px; cursor:pointer; white-space:nowrap; display:flex; align-items:center; gap:6px; border-radius:4px;';
+  btn.addEventListener('click', () => focusTab(id));
+
+  const x = document.createElement('span');
+  x.textContent = '×';
+  x.style.cssText = 'display:inline-block; padding:0 4px; border-left:1px solid #333; cursor:pointer; opacity:.85;';
+  x.addEventListener('click', (e) => { e.stopPropagation(); closeTab(id); });
+  btn.appendChild(x);
+
+  return btn;
+}
+
+function makePanelContainer(id) {
+  const panel = document.createElement('div');
+  panel.id = `panel-${id}`;
+  panel.style.display = 'none';
+  return panel;
+}
+
+function openTab({ id, title, kind, render }) {
+  ensureTabbedSidebar();
+
+  // Si déjà ouvert : on le met à jour + focus
+  if (Tabbed.openTabs.has(id)) {
+    focusTab(id);
+    return;
+  }
+
+  const btn   = makeTabButton(title, id);
+  const panel = makePanelContainer(id);
+
+  // Remplir le panneau
+  render(panel);
+
+  // Injecter
+  Tabbed.tabsBar.appendChild(btn);
+  Tabbed.content.appendChild(panel);
+
+  Tabbed.openTabs.set(id, { btn, panel, kind });
+  showTabbedSidebar();
+  focusTab(id);
+}
+
+// Contenu "fragment" (proche de ta sidebar spatiale)
+function renderFragmentPanel(panel, props) {
+  panel.innerHTML = '';
+  const h2 = document.createElement('h2'); h2.textContent = props.name || props.id || 'Fragment';
+  const pId = document.createElement('p'); pId.innerHTML = `<strong>ID :</strong> ${props.id || ''}`;
+  const pDesc = document.createElement('p'); pDesc.textContent = props.description || '';
+  const photos = document.createElement('div');
+  if (props.photos && props.photos.length) {
+    props.photos.forEach(src => {
+      const img = document.createElement('img');
+      img.src = src; img.style.width = '100%'; img.style.marginBottom = '8px';
+      photos.appendChild(img);
+    });
+  }
+  panel.append(h2, pId, pDesc, photos);
+}
+
+// Contenu "pattern" (condensé proxémie)
+function renderPatternPanel(panel, patternKey, patternData) {
+  panel.innerHTML = '';
+  const h2 = document.createElement('h2'); h2.textContent = `${patternKey} — Pattern`;
+  const crits = Object.keys(patternData.criteria || {}).join(', ');
+  const pCrit = document.createElement('p'); pCrit.innerHTML = `<strong>Critères communs :</strong> ${crits || '—'}`;
+
+  // liste des fragments membres avec 1 miniature si dispo
+  const list = document.createElement('div');
+  list.style.display = 'grid';
+  list.style.gridTemplateColumns = '48px 1fr';
+  list.style.gap = '8px';
+
+  const all = [...(dataGeojson || []), ...(datamGeojson || [])];
+  const byId = new Map(all.map(f => [f.properties.id, f]));
+
+  (patternData.elements || []).forEach(id => {
+    const f = byId.get(id);
+    const thumb = document.createElement('div');
+    thumb.style.width = '48px'; thumb.style.height = '36px';
+    thumb.style.background = '#eee'; thumb.style.border = '1px solid #ccc';
+    if (f?.properties?.photos?.length) {
+      thumb.style.backgroundImage = `url(${f.properties.photos[0]})`;
+      thumb.style.backgroundSize = 'cover';
+      thumb.style.backgroundPosition = 'center';
+    }
+    const label = document.createElement('div');
+    label.textContent = (f?.properties?.name || id);
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+
+    list.appendChild(thumb);
+    list.appendChild(label);
+  });
+
+  panel.append(h2, pCrit, list);
+}
+
+
+function renderDiscoursePanel(panel, props) {
+  panel.innerHTML = '';
+  const h2 = document.createElement('h2'); h2.textContent = props.id || 'Discours';
+  const pA = document.createElement('p'); pA.innerHTML = `<strong>Auteur :</strong> ${props.auteur || ''}`;
+  const pD = document.createElement('p'); pD.innerHTML = `<strong>Date :</strong> ${props.date || ''}`;
+  const pS = document.createElement('p');
+  const src = props.source || '';
+  pS.innerHTML = `<strong>Source :</strong> ${
+    src && String(src).startsWith('http') ? `<a href="${src}" target="_blank">${src}</a>` : src
+  }`;
+  const pT = document.createElement('p'); pT.textContent = props.contenu || '';
+  panel.append(h2, pA, pD, pS, pT);
+}
+
 
 
 let isGalleryView = false;
@@ -442,45 +914,55 @@ let isGalleryView = false;
 // ============================
 
 function showGalleryView() {
-    const gallery = document.getElementById('gallery-view');
-    gallery.innerHTML = ''; // reset
+  const gallery = document.getElementById('gallery-view');
+  gallery.innerHTML = '';
 
-    Object.entries(patterns).forEach(([key, pattern]) => {
-        const container = document.createElement('div');
-        container.style.padding = '20px';
-        container.style.borderBottom = '1px solid #ccc';
+  // conteneur centré et borné (géré par le CSS)
+  const wrapper = document.createElement('div');
+  wrapper.className = 'gallery-wrapper';
+  gallery.appendChild(wrapper);
 
-        const title = document.createElement('h3');
-        title.textContent = `${key} — Critères : ${Object.keys(pattern.criteria).map(c => c.replace(/_/g, ' ')).join(', ')}`;
-        container.appendChild(title);
+  Object.entries(patterns).forEach(([key, pattern]) => {
+    const block = document.createElement('section');
+    block.className = 'pattern-block';
 
-        const photoRow = document.createElement('div');
-        photoRow.style.display = 'flex';
-        photoRow.style.flexWrap = 'wrap';
-        photoRow.style.gap = '10px';
+    // Titre propre
+    const title = document.createElement('h3');
+    const crits = Object.keys(pattern.criteria).map(c => c.replace(/_/g, ' ')).join(', ');
+    title.className = 'pattern-title';
+    title.textContent = `${key} — Critères : ${crits}`;
+    block.appendChild(title);
 
-        [...dataGeojson, ...datamGeojson].forEach(feature => {
-            if (pattern.elements.includes(feature.properties.id) && feature.properties.photos?.length) {
-                feature.properties.photos.forEach(photo => {
-    const img = document.createElement('img');
-    img.src = photo;
-    img.style.width = '200px';
-    img.style.height = 'auto';
-    img.style.border = '1px solid #999';
-    img.style.cursor = 'pointer';
-    img.onclick = () => showDetails(feature.properties); 
-    photoRow.appendChild(img);
-});
-            }
+    // Grille photos
+    const grid = document.createElement('div');
+    grid.className = 'photo-grid';
+
+    // Ajoute les photos existantes (si présentes)
+    [...dataGeojson, ...datamGeojson].forEach(feature => {
+      if (pattern.elements.includes(feature.properties.id) && feature.properties.photos?.length) {
+        feature.properties.photos.forEach(photo => {
+          const cell = document.createElement('div');
+          cell.className = 'photo-cell';
+
+          const img = document.createElement('img');
+          img.loading = 'lazy';
+          img.src = photo;
+          img.alt = feature.properties.name || feature.properties.id || 'photo';
+          img.onclick = () => showDetails(feature.properties);
+
+          cell.appendChild(img);
+          grid.appendChild(cell);
         });
-
-        container.appendChild(photoRow);
-        gallery.appendChild(container);
+      }
     });
+
+    block.appendChild(grid);
+    wrapper.appendChild(block);
+  });
 }
 
 
-let patternThreshold = 5; // seuil pour former les patterns
+
 
 // ============================
 // VUE PROXÉMIQUE (Affichage des patterns en cluster)
@@ -571,21 +1053,22 @@ const svg = d3.select("#proxemic-view").append("svg")
         .attr("class", "pattern-node")
         .attr("transform", d => `translate(${d.x},${d.y})`);
 
-    patternNodes.append("circle")
-    .attr("r", d => radiusScale(d))
-    .style("fill", "#333")
-    .style("stroke", "black")
-    .style("cursor", "pointer")
-    .on("click", function(event, d) {
-        showDetails({ isPattern: true, patternKey: d.id, elements: d.elements, criteria: d.criteria });
-    });
+patternNodes.append("circle")
+  .attr("r", d => radiusScale(d))
+  .style("fill", d => colorForPattern(d.id))       // même couleur que la carte des patterns
+  .style("stroke", d => colorForPattern(d.id))     // contour identique (tu peux mettre noir si tu préfères)
+  .style("stroke-width", 2)
+  .style("cursor", "pointer")
+  .on("click", function(event, d) {
+    showDetails({ isPattern: true, patternKey: d.id, elements: d.elements, criteria: d.criteria });
+  });
 
-    patternNodes.append("text")
-        .style("text-anchor", "middle")
-        .style("font-size", "12px")
-        .style("fill", "#fff")
-        .style("font-weight", "bold")
-        .text(d => d.name);
+patternNodes.append("text")
+  .style("text-anchor", "middle")
+  .style("font-size", "12px")
+  .style("fill", d => labelColorForPattern(d.id))   // lisible sur la couleur de fond
+  .style("font-weight", "bold")
+  .text(d => d.name);
 
         function addLabelWithBackground(svg, x, y, textContent) {
     const group = svg.append("g").attr("transform", `translate(${x}, ${y})`);
@@ -787,39 +1270,169 @@ function setView(viewId) {
 
 
 function updateInterfaceElements(viewId) {
-    const legendBtn = document.getElementById('toggle-legend-btn');
-    const similarityControls = document.getElementById('similarity-controls');
-    const locationBtn = document.getElementById('toggle-location-btn');
+  const legendBtn = document.getElementById('toggle-legend-btn');
+  const locationBtn = document.getElementById('toggle-location-btn');
 
-    // Légende visible uniquement en vue proxémique
-    legendBtn.style.display = viewId === 'proxemic' ? 'block' : 'none';
+  // Légende visible uniquement en proxémique
+  legendBtn.style.display = viewId === 'proxemic' ? 'block' : 'none';
 
-    // Sliders visibles en proxémique et galerie
-    similarityControls.style.display = (viewId === 'proxemic' || viewId === 'gallery') ? 'block' : 'none';
-
-    // Bouton "voir Toulouse" uniquement sur la carte
-    locationBtn.style.display = viewId === 'map' ? 'block' : 'none';
+// Bouton "voir Toulouse/Montreuil" sur Fragments, Patterns-carte ET Unité
+locationBtn.style.display = (viewId === 'map' || viewId === 'patterns-map' || viewId === 'unit') ? 'block' : 'none';
 }
 
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const view = btn.dataset.view;
-        setView(view);
-    });
+// ---- NAVIGATION NOUVELLE STRUCTURE ----
+
+// Éléments
+const topTabs = document.querySelectorAll('.top-tab');
+const subnav = document.getElementById('subnav-patterns');
+const subTabs = document.querySelectorAll('.sub-tab');
+
+// Vues (ids dans le DOM)
+const VIEWS = {
+  fragments: 'map',          // ta carte existante
+  unit: 'unit-view',         // vue vide pour l’instant
+  sub: {
+    'patterns-map': 'patterns-map',   // vide pour l’instant
+    'proxemic': 'proxemic-view',      // ta proxémie existante
+    'gallery': 'gallery-view'         // ta galerie existante
+  }
+};
+
+// Affiche une vue par id (et masque les autres)
+function showView(viewId) {
+  document.querySelectorAll('.view').forEach(v => {
+    if (!v) return;
+    v.style.display = (v.id === viewId) ? 'block' : 'none';
+  });
+
+  if (viewId === 'map' && typeof window.map !== 'undefined' && window.map) {
+    setTimeout(() => window.map.invalidateSize(), 0);
+  }
+
+  // >>> AJOUT :
+  if (viewId === 'unit-view' && unitMap) {
+    setTimeout(() => unitMap.invalidateSize(), 0);
+  }
+}
+
+
+function setTopTab(name) {
+  topTabs.forEach(btn => btn.classList.toggle('active', btn.dataset.top === name));
+
+  // Always show the bar; just toggle its inactive state
+  if (name === 'patterns') {
+    subnav.classList.remove('subnav--inactive');
+    const currentActiveSub = document.querySelector('.sub-tab.active')?.dataset.sub || 'proxemic';
+    setSubTab(currentActiveSub);
+  } else {
+    subnav.classList.add('subnav--inactive');
+    subTabs.forEach(btn => btn.classList.remove('active'));
+
+    if (name === 'fragments') {
+      currentView = 'map';
+      showView(VIEWS.fragments);
+    }
+    if (name === 'unit') {
+      currentView = 'unit';
+      showView(VIEWS.unit);
+      ensureUnitMap();
+      renderAllUnits();
+    }
+    updateInterfaceElements(currentView);
+  }
+
+  // Si on quitte "patterns", on annule le mode création
+if (unitCreation.active && name !== 'patterns') stopUnitCreation();
+
+
+
+  // Slider only visible on Patterns
+  const similarityControls = document.getElementById('similarity-controls');
+  similarityControls.style.display = (name === 'patterns') ? 'block' : 'none';
+}
+
+
+
+// Active un sous-onglet de "Patterns"
+function setSubTab(subName) {
+
+// Si on n'est plus sur "patterns-map", on annule
+if (unitCreation.active && subName !== 'patterns-map') stopUnitCreation();
+
+
+  // --- synchronise currentView avec le sous-onglet actif ---
+  if (subName === 'proxemic') currentView = 'proxemic';
+  else if (subName === 'gallery') currentView = 'gallery';
+  else if (subName === 'patterns-map') currentView = 'patterns-map';
+
+
+  // activer visuel du sous-onglet
+  subTabs.forEach(btn => btn.classList.toggle('active', btn.dataset.sub === subName));
+
+  // afficher le conteneur ciblé
+  const viewId = VIEWS.sub[subName];
+  showView(viewId);
+
+    if (subName === 'patterns-map') {
+    initPatternMapOnce();
+    // Important si le conteneur était caché
+    setTimeout(() => patternMap.invalidateSize(), 0);
+
+    // Base grise + contours courants
+    renderPatternBaseGrey();
+    refreshPatternsMap();
+  }
+
+
+  // rendre la vue + ajuster l'UI
+  if (subName === 'proxemic') {
+    showProxemicView();
+  } else if (subName === 'gallery') {
+    showGalleryView();
+  }
+  updateInterfaceElements(currentView);
+}
+
+function maybeHideTabbedOnViewChange() {
+  if (currentView !== 'patterns-map' && Tabbed?.el) {
+    // vider proprement
+    Tabbed.openTabs?.forEach((_rec, id) => closeTab(id));
+    Tabbed.el.style.display = 'none';
+  }
+}
+
+
+// Listeners
+topTabs.forEach(btn => {
+  btn.addEventListener('click', () => setTopTab(btn.dataset.top));
 });
 
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        // Changer la vue
-        const view = btn.dataset.view;
-        setView(view);
-
-        // Mettre à jour l'apparence des onglets
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-    });
+subTabs.forEach(btn => {
+  btn.addEventListener('click', () => setSubTab(btn.dataset.sub));
 });
+
+// Bouton "Créer une Unité de Projet" — activation du mode sélection
+// Bouton "Créer une Unité de Projet" — toggle on/off
+const createUnitBtn = document.getElementById('create-unit-btn');
+if (createUnitBtn) {
+  createUnitBtn.addEventListener('click', () => {
+    if (unitCreation.active) {
+      // Un 2e clic annule
+      stopUnitCreation();
+    } else {
+      // 1er clic active
+      startUnitCreation();
+    }
+  });
+}
+
+
+
+// État initial : Fragments (carte)
+setTopTab('fragments');
+currentView = 'map';
+updateInterfaceElements('map');
 
 
 // ============================
@@ -827,20 +1440,27 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 // ============================
 
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const infoBtn = document.getElementById('info-btn');
-    const aboutBox = document.getElementById('about');
-    const closeAbout = document.getElementById('close-about');
+document.addEventListener('DOMContentLoaded', () => {
+  const infoBtn = document.getElementById('info-btn');
+  const aboutBox = document.getElementById('about');
 
-    infoBtn.addEventListener('click', () => {
-      aboutBox.style.display = 'block';
-    });
+  function toggleAbout() {
+    const isOpen = aboutBox.style.display === 'block';
+    aboutBox.style.display = isOpen ? 'none' : 'block';
+    // accessibilité
+    if (infoBtn) infoBtn.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+  }
 
-    closeAbout.addEventListener('click', () => {
-      aboutBox.style.display = 'none';
-    });
-    applyFilters(); 
+  if (infoBtn) infoBtn.addEventListener('click', toggleAbout);
+
+  // (optionnel) fermer avec Échap
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && aboutBox.style.display === 'block') toggleAbout();
   });
+});
+
+
+
 
 
 // ============================
@@ -852,14 +1472,288 @@ document.getElementById('similarity-slider').addEventListener('input', function(
     patternThreshold = value; 
     document.getElementById('slider-value').textContent = value;
 
-    if (currentView !== 'map') {
-        const visibleFeatures = allLayers.filter(layer => map.hasLayer(layer)).map(layer => layer.feature);
-        patterns = identifyPatterns(visibleFeatures);
+  // Recalcule toujours sur les éléments visibles selon zones (hors discours)
+  const visible = [...dataGeojson, ...datamGeojson].filter(f => isFeatureInActiveZones(f) && !f.properties.isDiscourse);
+  patterns = identifyPatterns(visible);
 
-        if (currentView === 'gallery') {
-            showGalleryView();
-        } else if (currentView === 'proxemic') {
-            showProxemicView();
-        }
-    }
+  if (currentView === 'gallery') {
+    showGalleryView();
+  } else if (currentView === 'proxemic') {
+    showProxemicView();
+  } else if (currentView === 'patterns-map') {
+    renderPatternBaseGrey();
+    refreshPatternsMap();
+  }
 });
+
+
+// ========== NOUVELLE CARTE "PATTERNS" ==========
+let patternMap = null;
+let patternBaseLayer = null;        // couches grises (fragments)
+let patternOverlayGroup = null;     // tous les contours colorés
+let patternPanes = new Map();       // pane par pattern (z-index)
+let combinedFeatures = [];          // dataGeojson + datamGeojson (mise à jour après le chargement)
+
+// --- Couleurs fixes par pattern (ajoute/ajuste si besoin) ---
+
+// --- 100 couleurs très distinctes (P1..P100) ---
+// Teinte = pas du "golden angle" (≈137.508°) pour espacer fortement les couleurs
+// + cycles de saturation/luminance pour maximiser le contraste sur fond sombre
+const SAT_SEQ = [95, 85, 90, 80];   // % (très vives → plus lisibles sur fond dark)
+const LIT_SEQ = [58, 70, 50, 64];   // % (on alterne clair/sombre pour casser la ressemblance)
+
+const PATTERN_COLORS = Object.fromEntries(
+  Array.from({ length: 100 }, (_, i) => {
+    const hue = Math.round((i * 137.508) % 360);          // 0..359 (golden angle)
+    const sat = SAT_SEQ[i % SAT_SEQ.length];              // 95,85,90,80...
+    const lit = LIT_SEQ[(Math.floor(i / 4)) % LIT_SEQ.length]; // 58,70,50,64...
+    return [`P${i + 1}`, `hsl(${hue}, ${sat}%, ${lit}%)`];
+  })
+);
+
+// Utilitaire : couleur par nom de pattern (stable >100 aussi)
+function colorForPattern(pName) {
+  if (PATTERN_COLORS[pName]) return PATTERN_COLORS[pName];
+  const n = parseInt(String(pName).replace(/^P/i, ''), 10);
+  if (Number.isFinite(n)) {
+    const idx = ((n - 1) % 100) + 1;
+    return PATTERN_COLORS[`P${idx}`];
+  }
+  let h = 0; for (const c of String(pName)) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 90%, 55%)`;
+}
+
+// → optionnel mais pratique si un jour tu modules ton script
+window.colorForPattern = colorForPattern;
+
+function labelColorForPattern(pName) {
+  const hsl = colorForPattern(pName);            // ex: "hsl(123, 90%, 58%)"
+  const m = hsl.match(/hsl\(\s*\d+,\s*\d+%?,\s*(\d+)%\s*\)/);
+  const L = m ? parseInt(m[1], 10) : 55;        // Luminance en %
+  return (L >= 62) ? '#000' : '#fff';           // seuil simple : si clair → texte noir
+}
+
+// Helpers zones actives (même logique que tes checkboxes)
+function getActiveZones() {
+  return Array.from(document.querySelectorAll('.filter-zone:checked')).map(cb => cb.value);
+}
+function isFeatureInActiveZones(f) {
+  const zones = getActiveZones();
+  // règle simple : Montreuil = id commence par 'N' ; Mirail = 'M'
+  const id = f.properties?.id || '';
+  const isN = id.startsWith('N');
+  const isM = id.startsWith('M');
+  return (isN && zones.includes('montreuil')) || (isM && zones.includes('mirail'));
+}
+
+// Renvoie la liste triée ['P1','P3',...] des patterns auxquels appartient un fragment donné
+function getPatternsForFragment(fragmentId) {
+  const result = [];
+  Object.entries(patterns || {}).forEach(([pName, pData]) => {
+    if ((pData.elements || []).includes(fragmentId)) result.push(pName);
+  });
+  // tri stable par numéro
+  result.sort((a, b) => parseInt(a.replace('P','')) - parseInt(b.replace('P','')));
+  return result;
+}
+
+// Handler de clic utilisé UNIQUEMENT sur la carte patterns
+function onPatternsMapFragmentClick(feature) {
+  // --- NOUVEAU : si on est en mode création d’unité, on capture et on sort ---
+  if (unitCreation.active) {
+    handleUnitSelection(feature);
+    return;
+  }
+
+  // Comportement normal (ouverture d’onglets)
+  if (currentView !== 'patterns-map') {
+    return showDetails(feature.properties);
+  }
+
+  clearAllTabbedTabs();
+  closeSidebars(); // masque les sidebars "spatiale/discours" classiques
+
+  // 1) Ouvre l'onglet "fragment"
+  const fProps = feature.properties || {};
+  const fragId = fProps.id || Math.random().toString(36).slice(2);
+  openTab({
+    id: `frag-${fragId}`,
+    title: fProps.id || 'Fragment',
+    kind: 'fragment',
+    render: (panel) => renderFragmentPanel(panel, fProps)
+  });
+
+  // 2) Ouvre un onglet par pattern associé
+  const pList = getPatternsForFragment(fragId);
+  pList.forEach(pName => {
+    const pData = patterns[pName];
+    if (!pData) return;
+    openTab({
+      id: `pattern-${pName}`,
+      title: pName,
+      kind: 'pattern',
+      render: (panel) => renderPatternPanel(panel, pName, pData)
+    });
+  });
+}
+
+function handleUnitSelection(feature) {
+  // 1) On arrête le mode création (on ré-affiche les anneaux, etc.)
+  stopUnitCreation();
+
+  // 2) On enregistre localement (localStorage) une "unité" minimale
+  const unit = {
+    id: `UP-${Date.now()}`,     // id simple unique
+    sourceFragmentId: feature?.properties?.id || null,
+    geometry: feature.geometry,  // on reprend la géométrie du fragment
+    props: {
+      name: feature?.properties?.name || feature?.properties?.id || 'Fragment sélectionné'
+    },
+    createdAt: new Date().toISOString()
+  };
+  saveUnitLocal(unit);
+
+// 3) Bascule onglet + affiche TOUTES les unités, puis zoom sur la nouvelle
+setTopTab('unit');
+showView('unit-view');
+setTimeout(() => {
+  renderAllUnits();
+  zoomToUnit(unit);
+}, 0);
+}
+
+// Sauvegarde cumulée : un tableau "units"
+function saveUnitLocal(unit) {
+  try {
+    const key = 'units';
+    const arr = JSON.parse(localStorage.getItem(key) || '[]');
+    arr.push(unit);
+    localStorage.setItem(key, JSON.stringify(arr));
+  } catch (e) {
+    console.warn('Impossible d’enregistrer localement l’unité :', e);
+  }
+}
+
+function loadUnitsLocal() {
+  try {
+    return JSON.parse(localStorage.getItem('units') || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+
+
+
+
+function ensureUnitMap() {
+  if (unitMap) {
+    setTimeout(() => unitMap.invalidateSize(), 0);
+    return unitMap;
+  }
+
+  // Crée la carte
+  unitMap = L.map('unit-view', {
+    zoomControl: true,
+    attributionControl: true
+  }).setView(montreuilView, montreuilZoom);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors, © CartoDB'
+  }).addTo(unitMap);
+
+  // Groupes
+  unitContextGroup = L.layerGroup().addTo(unitMap); // contexte (contours…)
+  unitLayerGroup   = L.layerGroup().addTo(unitMap); // unités
+
+  // Ajoute les contours Montreuil/Mirail (même fichier que sur les autres cartes)
+  fetch('data/contour.geojson')
+    .then(r => r.json())
+    .then(contour => {
+      L.geoJSON(contour, {
+        style: { color: '#919090', weight: 2, opacity: 0.8, fillOpacity: 0 }
+      }).addTo(unitContextGroup);
+    });
+
+  return unitMap;
+}
+
+
+function renderAllUnits() {
+  const mapU = ensureUnitMap();
+  unitLayerGroup.clearLayers();
+
+  const whiteStyle = { color:'#fff', weight:2, opacity:1, fillColor:'#fff', fillOpacity:0.25 };
+  const units = loadUnitsLocal();
+  let unionBounds = null;
+
+  units.forEach(u => {
+    const layer = L.geoJSON(
+      { type:'Feature', geometry:u.geometry, properties:u.props },
+      {
+        pointToLayer: (_f, latlng) => L.circleMarker(latlng, { ...whiteStyle, radius: 6 }),
+        style: () => whiteStyle
+      }
+    ).addTo(unitLayerGroup);
+
+    if (layer.getBounds) {
+      const b = layer.getBounds();
+      unionBounds = unionBounds ? unionBounds.extend(b) : b;
+    }
+  });
+
+  // si tu veux auto-zoomer sur l’ensemble existant :
+  if (unionBounds && unionBounds.isValid && unionBounds.isValid()) {
+    mapU.fitBounds(unionBounds.pad(0.3));
+  }
+}
+
+function zoomToUnit(unit) {
+  const mapU = ensureUnitMap();
+  try {
+    // si Polygon/LineString : bbox
+    const tmp = L.geoJSON({ type:'Feature', geometry:unit.geometry });
+    const b = tmp.getBounds?.();
+    if (b && b.isValid && b.isValid()) {
+      mapU.fitBounds(b.pad(0.3));
+      return;
+    }
+  } catch(e) {}
+
+  // sinon (Point), on centre/zoom
+  const center = getFeatureCenter({ geometry: unit.geometry });
+  if (center) mapU.setView(center, 17);
+}
+
+
+function showUnitOnMap(unit) {
+  const mapU = ensureUnitMap();
+
+  // On n'efface plus rien : on AJOUTE dans le groupe
+  const whiteStyle = { color:'#fff', weight:2, opacity:1, fillColor:'#fff', fillOpacity:0.25 };
+
+  const layer = L.geoJSON(
+    { type:'Feature', geometry:unit.geometry, properties:unit.props },
+    {
+      pointToLayer: (_f, latlng) => L.circleMarker(latlng, { ...whiteStyle, radius: 6 }),
+      style: () => whiteStyle
+    }
+  ).addTo(unitLayerGroup);
+
+  // Zoom sympa sur la dernière créée
+  try {
+    const b = layer.getBounds?.();
+    if (b && b.isValid && b.isValid()) {
+      mapU.fitBounds(b.pad(0.3));
+    } else {
+      const center = getFeatureCenter({ geometry: unit.geometry });
+      if (center) mapU.setView(center, 17);
+    }
+  } catch(e) {
+    console.warn('Fit bounds unité :', e);
+  }
+}
+
+
+
+

@@ -9497,6 +9497,99 @@
         "acteurs_visibles_invisible": false,
         "rapport_affectif_symbolique": false
       }
-    }
+    },
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [
+      [
+        [2.426100932612769, 48.86434487960253],
+        [2.426161729049568, 48.86418064628879],
+        [2.42633506357555, 48.864206174818634],
+        [2.4262768542202195, 48.864367855204364],
+        [2.426100932612769, 48.86434487960253]
+      ]
+    ]
+  },
+  "properties": {
+    "id": "N129",
+    "name": "Recyclerie de la Noue",
+    "description": "Fermeture définitive pour défaut de normes",
+    "photos": [
+      "https://i.postimg.cc/HnP6g4Lc/N128.jpg"
+    ],
+    "frequence_usage_aucun": true,
+    "frequence_usage_ponctuel": false,
+    "frequence_usage_regulier": false,
+    "frequence_usage_quotidien": false,
+    "mode_usage_prevu": true,
+    "mode_usage_detourne": false,
+    "mode_usage_creatif": false,
+    "intensite_usage_aucun": true,
+    "intensite_usage_faible": false,
+    "intensite_usage_moyenne": false,
+    "intensite_usage_forte": false,
+    "echelle_micro": false,
+    "echelle_meso": true,
+    "echelle_macro": false,
+    "origine_forme_institutionnelle": false,
+    "origine_forme_singuliere": false,
+    "origine_forme_collective": true,
+    "accessibilite_libre": false,
+    "accessibilite_semi_ouverte": false,
+    "accessibilite_fermee": true,
+    "visibilite_cachee": false,
+    "visibilite_visible": false,
+    "visibilite_exposee": true,
+    "acteurs_visibles_habitant": false,
+    "acteurs_visibles_institution": false,
+    "acteurs_visibles_collectif": false,
+    "acteurs_visibles_invisible": false,
+    "rapport_affectif_symbolique": false
+  }
+},
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "Point",
+    "coordinates": [2.4308689189914503, 48.86773402488828]
+  },
+  "properties": {
+    "id": "N130",
+    "name": "Potager église",
+    "description": "-",
+    "photos": [
+      "https://i.postimg.cc/C5KcX6wp/N129.jpg"
+    ],
+    "frequence_usage_aucun": false,
+    "frequence_usage_ponctuel": false,
+    "frequence_usage_regulier": true,
+    "frequence_usage_quotidien": false,
+    "mode_usage_prevu": true,
+    "mode_usage_detourne": false,
+    "mode_usage_creatif": false,
+    "intensite_usage_aucun": false,
+    "intensite_usage_faible": false,
+    "intensite_usage_moyenne": true,
+    "intensite_usage_forte": false,
+    "echelle_micro": true,
+    "echelle_meso": false,
+    "echelle_macro": false,
+    "origine_forme_institutionnelle": false,
+    "origine_forme_singuliere": false,
+    "origine_forme_collective": true,
+    "accessibilite_libre": true,
+    "accessibilite_semi_ouverte": false,
+    "accessibilite_fermee": false,
+    "visibilite_cachee": false,
+    "visibilite_visible": true,
+    "visibilite_exposee": false,
+    "acteurs_visibles_habitant": false,
+    "acteurs_visibles_institution": true,
+    "acteurs_visibles_collectif": false,
+    "acteurs_visibles_invisible": false,
+    "rapport_affectif_symbolique": false
+  }}
   ]
 }

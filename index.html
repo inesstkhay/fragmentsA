@@ -11,20 +11,58 @@
 <body>
 
 <div id="navbar" class="navbar">
-  <button class="tab-btn active" data-view="map">Carte</button>
-  <button class="tab-btn" data-view="proxemic">Patterns</button>
-  <button class="tab-btn" data-view="gallery">Galerie des patterns</button>
-  <!--<button class="tab-btn" data-view="critical">Acteurs et discours</button> désactivé pour l'instant! -->
+  <!-- même style que tes onglets actuels: on réutilise .tab-btn -->
+  <button class="tab-btn top-tab active" data-top="fragments">Fragments</button>
+  <button class="tab-btn top-tab" data-top="patterns">Patterns</button>
+  <button class="tab-btn top-tab" data-top="unit">Unité de projet</button>
+
+  <div id="brand-chip" class="brand-chip">
+  <span>backdoorurbanism</span>
+  <button id="info-btn" class="brand-info" title="À propos">i</button>
+</div>
+
+</div>
+
+<!-- Sous-onglets : visible UNIQUEMENT quand "Patterns" est actif -->
+<div id="subnav-patterns" class="subnav subnav--inactive">
+  <button class="tab-btn sub-tab" data-sub="patterns-map">Carte</button>
+  <button class="tab-btn sub-tab" data-sub="proxemic">Proxémie</button>
+  <button class="tab-btn sub-tab" data-sub="gallery">Galerie</button>
+
+  <!-- Action à droite ; pour l’instant “vide” -->
+  <button id="create-unit-btn" class="tab-btn sub-action">Créer une Unité de Projet</button>
 </div>
 
 <!-- VUES PRINCIPALES -->
-<div id="map"></div>
-<div id="proxemic-view"></div>
-<div id="gallery-view" style=" display: none; position: absolute; top: 0; left: 250px; /* pour ne pas passer sous les filtres */ right: 0; bottom: 0; background: white; overflow-y: auto; z-index: 100;     padding: 80px;     box-sizing: border-box; "></div>
-<div id="similarity-controls" style="display:none; position: absolute; top: 40px; left: 50%; color: white; transform: translateX(-50%); background: rgb(0, 0, 0); padding: 10px; z-index: 1050; border: 1px solid #ccc;">
+<div id="map" class="view active"><!-- ta carte Leaflet existante --></div>
+<!-- (nouveau) Vue "Carte" de Patterns : vide pour l’instant -->
+<div id="patterns-map" class="view" style="display:none;"></div>
+
+
+<!-- Sidebar à onglets (uniquement pour la carte Patterns) -->
+<div id="tabbed-sidebar" style="
+  position:fixed; top:90px; right:10px; width:380px; max-height:calc(100vh - 120px);
+  display:none; background:#fff; border:1px solid #ccc; z-index:4002; overflow:hidden; font-family:'Consolas', monospace;">
+  <div id="tabbed-sidebar-tabs" style="display:flex; gap:4px; padding:6px; background:#000; border-bottom:1px solid #333; overflow-x:auto;">
+    <!-- boutons d’onglets dynamiques -->
+  </div>
+  <div id="tabbed-sidebar-content" style="overflow:auto; max-height:calc(100vh - 160px); padding:10px;">
+    <!-- panneaux dynamiques -->
+  </div>
+</div>
+
+
+<!-- Vue proxémie existante (ta “patterns/proxémie”) -->
+<div id="proxemic-view" class="view" style="display:none;"></div>
+<!-- Vue galerie existante -->
+<div id="gallery-view" class="view" style="display:none; position: absolute; top: 55px; left: 10px; /* pour ne pas passer sous les filtres */ right: 0; bottom: 0; background: white; overflow-y: auto; z-index: 100;     padding: 80px;     box-sizing: border-box; "></div>
+<!-- (nouveau) Vue "Unité de projet" : vide pour l’instant -->
+<div id="unit-view" class="view" style="display:none;"></div>
+
+<div id="similarity-controls" style="display:none; position: absolute; top: 90px; left: 50%; color: white; transform: translateX(-50%); background: rgb(0, 0, 0); padding: 10px; z-index: 1050; border: 1px solid #ccc;">
     <label for="similarity-slider">Nombre de critères communs : <span id="slider-value">5</span></label><br>
     <input type="range" id="similarity-slider" min="2" max="15" value="5" step="1"> </div>
-<div id="critical-view" style=" display: none; position: absolute;     top: 60px;     left: 50%;     transform: translateX(-50%);     width: 600px;    height: 600px;    background: white;    z-index: 100;    padding: 0;    box-sizing: border-box;     overflow: hidden;"> </div>
+<div id="critical-view" style=" display: none; position: absolute;     top: 90px;     left: 50%;     transform: translateX(-50%);     width: 600px;    height: 600px;    background: white;    z-index: 100;    padding: 0;    box-sizing: border-box;     overflow: hidden;"> </div>
 
 <!-- PANNELS LATÉRAUX -->
 <div id="spatial-sidebar" class="sidebar">
@@ -87,22 +125,50 @@
 ">Légende</button>
 
 
-<button id="toggle-location-btn" class="view-toggle-btn" onclick="toggleLocation()">Voir Toulouse</button>
+<button id="toggle-location-btn"
+  class="view-toggle-btn"
+  onclick="toggleLocation()"
+  style="position:absolute; top:90px; right:10px; z-index:1050; background:#000; color:#fff; padding:10px; border:1px solid #fff; cursor:pointer; font-family:'Consolas', monospace;">
+  Voir Toulouse
+</button>
 
-<div id="footer">
-    <span>Expérimentation</span>
-    <button id="info-btn">i</button>
-</div>
 
 <div id="about">
     <h2>À propos</h2>
     <p>Description.</p>
     <p>Developpé par Iness Tkhayyare, LRA ENSA Toulouse</p>
-    <button id="close-about">X</button>
 </div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://d3js.org/d3.v7.min.js"></script>
 <script src="script.js"></script>
+
+
+
+<!-- Fine barre noire en bas -->
+<div id="footer-strip" style="
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;              /* ajuste l'épaisseur ici */
+  background: #000;
+  z-index: 3000;             /* au-dessus de la carte */
+    border-top: 0.2px solid #585858; /* contour blanc en haut */
+  pointer-events: none;      /* ne bloque pas les clics sur la carte */
+"></div>
+
+
+<!-- Hint flottant pour la création d'Unité de Projet -->
+<div id="unit-hint" style="
+  position:fixed; top:0; left:0; transform: translate(-50%,-140%);
+  padding:6px 8px; background:#000; color:#fff; border:1px solid #fff;
+  font-family:'Consolas', monospace; font-size:13px; z-index:100000; 
+  display:none; pointer-events:none; white-space:nowrap;">
+  Sélectionnez un fragment sur la carte
+</div>
+
+
+
 </body>
 </html>

@@ -38,12 +38,12 @@ body {
             position: absolute;
             top: 10%;
             right: 0;
-            z-index: 101; 
+            z-index: 10000; 
         }
         #filters {
             position: absolute;
             color: white;
-            top: 40px;
+            top: 90px;
             left: 10px;
             background: rgb(0, 0, 0);
             padding: 10px;
@@ -108,23 +108,7 @@ body {
     z-index: 200;
     max-height: 80vh; 
 }
-        #footer {
-            position: absolute;
-            bottom: 0;
-            right: 0;
-            background: rgba(255, 255, 255, 1);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 80px;
-            border-top-left-radius: 0px;
-            font-family: 'Consolas', monospace;
-            box-shadow: -2px -2px 6px rgba(0,0,0,0.1);
-            z-index: 102;
-        }
-        #footer span {
-            font-size: 14px;
-        }
+        
         #info-btn {
             font-size: 16px;
             cursor: pointer;
@@ -134,27 +118,20 @@ body {
         #about {
             display: none;
             position: absolute;
-            bottom: 50px;
-            right: 20px;
+            top: 90px;
+            right: 10px;
             width: 300px;
-            background: white;
+            background: rgb(0, 0, 0);
+            color: white;
             border: 1px solid #ccc;
             padding: 15px;
             font-family: 'Consolas', monospace;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            z-index: 103;
+            z-index: 10000000;
         }
         #about h2 {
             margin-top: 0;
             font-size: 16px;
-        }
-        #close-about {
-            margin-top: 10px;
-            background: #f0f0f0;
-            border: none;
-            padding: 6px 10px;
-            cursor: pointer;
-            font-family: 'Consolas', monospace;
         }
         #info-btn {
             width: 20px;
@@ -221,4 +198,178 @@ input[type="range"] {
     z-index: 2;
     border-color: #888;
     box-shadow: 0 -2px 5px rgba(255,255,255,0.2);
+}
+
+.subnav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid #ddd;
+}
+.subnav .sub-action {
+  margin-left: auto; /* pousse le bouton à droite */
+  opacity: 0.85;
+}
+.view { /* optionnel si tu préfères tout piloter en inline via JS */
+  width: 100%;
+  height: 100%;
+}
+
+
+
+/* La sous-barre Patterns, au-dessus de la carte aussi */
+/* Sub-bar: always visible under the main navbar */
+#subnav-patterns {
+  position: absolute;
+  top: 38px;              /* just under the navbar */
+  left: 0;
+  right: 0;
+  z-index: 1060;
+  background: #000;
+  border-bottom: 1px solid #4d4d4d;
+  padding: 6px 10px;
+  display: flex;          /* always displayed */
+  gap: 8px;
+  align-items: center;
+  min-height: 36px;       /* consistent height across views */
+}
+
+/* When not on “Patterns”, keep the bar but hide the controls */
+#subnav-patterns.subnav--inactive {
+  pointer-events: none;   /* no interaction */
+}
+
+#subnav-patterns.subnav--inactive .sub-tab,
+#subnav-patterns.subnav--inactive .sub-action {
+  visibility: hidden;     /* hide buttons but keep bar height */
+}
+
+
+
+/* (optionnel) si ton bouton est sous la sous-barre, descends-le un peu */
+#toggle-location-btn { top: 90px; }
+
+
+.brand-chip {
+  margin-left: auto;                /* pousse à droite */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  font-family: 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.brand-chip .brand-info {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  background: #000;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 0;
+}
+
+/* Optionnel : harmoniser avec tes .tab-btn au survol */
+.brand-chip:hover { border-color: #aaa; }
+.brand-chip .brand-info:hover { filter: brightness(1.1); }
+
+/* Info-bulle des fragments (Patterns map) */
+.leaflet-tooltip.pattern-tip {
+  font-family: Consolas, monospace;
+  font-size: 13px;
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  border: 1px solid #555;
+  padding: 8px 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.45);
+}
+
+.leaflet-tooltip-pane { z-index: 2000 !important; }
+
+.leaflet-tooltip.pattern-tip .pt-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.leaflet-tooltip.pattern-tip .pt-sub {
+  opacity: .9;
+}
+
+
+/* ======== GALERIE (Patterns) ======== */
+
+#gallery-view {
+  width: 100%;
+  margin: 0;               /* pas d'écart à gauche */
+  padding: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;        /* évite tout débordement horizontal */
+  font-family: Consolas, monospace;
+}
+
+#gallery-view .gallery-wrapper {
+  max-width: 1000px;         /* largeur lisible, centrée */
+  margin: 0 auto;
+  padding: 24px 16px;        /* bords internes réguliers */
+  box-sizing: border-box;
+}
+
+#gallery-view .pattern-block {
+  padding: 16px 0 24px;
+  border-bottom: 1px solid #2a2a2a;  /* séparateur discret */
+}
+
+#gallery-view .pattern-title {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;   /* titres longs -> retour à la ligne */
+}
+
+#gallery-view .photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;                 /* espace régulier entre vignettes */
+}
+
+#gallery-view .photo-cell {
+  position: relative;
+  aspect-ratio: 4 / 3;       /* vignettes homogènes */
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #111;
+  overflow: hidden;
+}
+
+#gallery-view .photo-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;         /* recadre proprement */
+  display: block;
+  cursor: pointer;
+}
+
+
+/* Mode création d’unité : curseur précis sur la carte Patterns */
+.patterns-creating { cursor: crosshair !important; }
+
+/* Assure que le hint passe au-dessus de tout */
+#unit-hint { z-index: 2147483647 !important; }
+
+
+/* Curseur et état visuel quand on est en création d’UP */
+.leaflet-container.patterns-creating { cursor: crosshair; }
+
+/* Petit feedback visuel sur le bouton quand armé */
+.tab-btn.sub-action.is-armed {
+  background:#fff; color:#000; font-weight:bold;
+  border-color:#888; box-shadow:0 -2px 5px rgba(255,255,255,.2) inset;
 }
