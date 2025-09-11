@@ -199,186 +199,151 @@ function applyFilters() {
 
 let patternCounter = 1; // Compteur pour les patterns
 
+
+
+const CRITERIA_KEYS = [
+  "frequence_usage_aucun", "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien",
+  "mode_usage_prevu", "mode_usage_detourne", "mode_usage_creatif",
+  "intensite_usage_aucun", "intensite_usage_faible", "intensite_usage_moyenne", "intensite_usage_forte",
+  "echelle_micro", "echelle_meso", "echelle_macro",
+  "origine_forme_institutionnelle", "origine_forme_singuliere", "origine_forme_collective",
+  "accessibilite_libre", "accessibilite_semi_ouverte", "accessibilite_fermee",
+  "visibilite_cachee", "visibilite_visible", "visibilite_exposee",
+  "acteurs_visibles_habitant", "acteurs_visibles_institution", "acteurs_visibles_collectif", "acteurs_visibles_invisible",
+  "rapport_affectif_symbolique"
+];
+
+
+const MASK_BY_ID = new Map();
+function buildMaskFor(feature) {
+  const id = feature.properties.id;
+  if (MASK_BY_ID.has(id)) return MASK_BY_ID.get(id);
+  let mask = 0;
+  CRITERIA_KEYS.forEach((key, idx) => { if (feature.properties[key] === true) mask |= (1 << idx); });
+  MASK_BY_ID.set(id, mask);
+  return mask;
+}
+function popcount32(x) {
+  x = x - ((x >>> 1) & 0x55555555);
+  x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+  return (((x + (x >>> 4)) & 0x0F0F0F0F) * 0x01010101) >>> 24;
+}
+function maskToCriteriaDict(mask) {
+  const o = {};
+  CRITERIA_KEYS.forEach((key, idx) => { if (mask & (1 << idx)) o[key] = true; });
+  return o;
+}
+
+
 // ============================
 // DÉTECTION DES PATTERNS PAR SIMILARITÉ DE CRITÈRES
 // ============================
 // Identifie les patterns : groupes d’éléments partageant exactement X critères communs
 function identifyPatterns(features) {
-    const criteriaKeys = [
-        "frequence_usage_aucun", "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien",
-        "mode_usage_prevu", "mode_usage_detourne", "mode_usage_creatif",
-        "intensite_usage_aucun", "intensite_usage_faible", "intensite_usage_moyenne", "intensite_usage_forte",
-        "echelle_micro", "echelle_meso", "echelle_macro",
-        "origine_forme_institutionnelle", "origine_forme_singuliere", "origine_forme_collective",
-        "accessibilite_libre", "accessibilite_semi_ouverte", "accessibilite_fermee",
-        "visibilite_cachee", "visibilite_visible", "visibilite_exposee",
-        "acteurs_visibles_habitant", "acteurs_visibles_institution", "acteurs_visibles_collectif", "acteurs_visibles_invisible",
-        "rapport_affectif_symbolique"
-    ];
+  const used = new Set();
+  const groups = [];
+  let groupIndex = 1;
 
-    const requiredCount = patternThreshold;
-    const usedIds = new Set();
-    const groups = [];
-    let groupIndex = 1;
+  for (let i = 0; i < features.length; i++) {
+    const f1 = features[i], id1 = f1.properties.id;
+    if (used.has(id1)) continue;
+    const m1 = buildMaskFor(f1);
 
-    for (let i = 0; i < features.length; i++) {
-        const f1 = features[i];
-        const f1Id = f1.properties.id;
-        if (usedIds.has(f1Id)) continue;
+    for (let j = i + 1; j < features.length; j++) {
+      const f2 = features[j], id2 = f2.properties.id;
+      if (used.has(id2)) continue;
+      const m2 = buildMaskFor(f2);
 
-        for (let j = i + 1; j < features.length; j++) {
-            const f2 = features[j];
-            const f2Id = f2.properties.id;
-            if (usedIds.has(f2Id)) continue;
+      const sharedMask  = (m1 & m2);
+      const sharedCount = popcount32(sharedMask);
+      if (sharedCount !== patternThreshold) continue;
 
-            let sharedCount = 0;
-            const sharedCriteria = {};
+      const group = { name: `P${groupIndex++}`, elements: [id1, id2], criteria: maskToCriteriaDict(sharedMask) };
 
-            for (const key of criteriaKeys) {
-                if (f1.properties[key] === true && f2.properties[key] === true) {
-                    sharedCount++;
-                    sharedCriteria[key] = true;
-                }
-            }
+      for (let k = 0; k < features.length; k++) {
+        const f3 = features[k], id3 = f3.properties.id;
+        if (group.elements.includes(id3)) continue;
+        const m3 = buildMaskFor(f3);
+        if ((m3 & sharedMask) === sharedMask) group.elements.push(id3);
+      }
 
-            if (sharedCount === requiredCount) {
-                const group = {
-                    name: `P${groupIndex++}`,
-                    elements: [f1Id, f2Id],
-                    criteria: sharedCriteria
-                };
-
-                for (let k = 0; k < features.length; k++) {
-                    const f3 = features[k];
-                    const f3Id = f3.properties.id;
-                    if (group.elements.includes(f3Id)) continue;
-
-                    const sharesAll = Object.keys(sharedCriteria).every(key => f3.properties[key] === true);
-                    if (sharesAll) {
-                        group.elements.push(f3Id);
-                    }
-                }
-
-                group.elements.forEach(id => usedIds.add(id));
-                groups.push(group);
-            }
-        }
+      group.elements.forEach(id => used.add(id));
+      groups.push(group);
     }
+  }
 
-    const result = {};
-    patternNames = {};
-    groups.forEach(g => {
-        const key = g.name;
-        result[key] = {
-            name: key,
-            elements: g.elements,
-            criteria: g.criteria
-        };
-        patternNames[key] = key;
-    });
-
-    return result;
+  const result = {};
+  patternNames = {};
+  groups.forEach(g => { result[g.name] = g; patternNames[g.name] = g.name; });
+  return result;
 }
+
 
 // ============================
 // CHARGEMENT DES DONNÉES GEOJSON
 // ============================
 
-
+// Contours (peu interactif) : préciser interactive:false
 fetch('data/contour.geojson')
-    .then(response => response.json())
-    .then(data => {
-        L.geoJSON(data, {
-            style: {
-                color: '#919090',
-                weight: 2,
-                opacity: 0.8,
-                fillOpacity: 0
-            }
-        }).addTo(map);
-    });
+  .then(r => r.json())
+  .then(data => {
+    L.geoJSON(data, {
+      style: { color:'#919090', weight:2, opacity:0.8, fillOpacity:0 },
+      interactive: false
+    }).addTo(map);
+  });
 
-    // Chargement des données de Montreuil, puis de celles du Mirail
+// Chargement parallèle des deux bases spatiales
+Promise.all([
+  fetch('data/data.geojson').then(r => r.json()),
+  fetch('data/datam.geojson').then(r => r.json())
+]).then(([data, dataM]) => {
+  dataGeojson  = data.features;
+  datamGeojson = dataM.features;
 
-    fetch('data/data.geojson')
-    .then(res => res.json())
-    .then(data => {
-        dataGeojson = data.features;
-        patterns = identifyPatterns(dataGeojson); 
+  // Montreuil
+  L.geoJSON({ type:'FeatureCollection', features: dataGeojson }, {
+    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+      radius: 4, color: 'red', weight: 1, opacity: 1, fillColor: 'red', fillOpacity: 0.8
+    }),
+    style: () => ({ color:'red', weight:0.9, fillOpacity:0.3 }),
+    onEachFeature: (feature, layer) => {
+      layer.zone = 'montreuil';
+      allLayers.push(layer);
+      layer.on('click', () => showDetails(feature.properties));
+    }
+  }).addTo(map);
 
-        L.geoJSON(data, {
-            
-            pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-  radius: 4,
-  color: 'red', 
-  weight: 1,
-  opacity: 1,
-  fillColor: 'red', 
-  fillOpacity: 0.8
- }),
-style: feature => ({
-    color: 'red',      
-    weight: 0.9,       
-    fillOpacity: 0.3   
-}),
-            onEachFeature: (feature, layer) => {
-    layer.zone = 'montreuil'; 
-    allLayers.push(layer);
-    layer.on('click', () => showDetails(feature.properties));
-}
-        }).addTo(map);
-        
-        fetch('data/datam.geojson')
-            .then(res => res.json())
-            .then(dataM => {
-                datamGeojson = dataM.features;
+  // Mirail
+  L.geoJSON({ type:'FeatureCollection', features: datamGeojson }, {
+    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
+      radius: 4, color: 'blue', weight: 1, opacity: 1, fillColor: 'blue', fillOpacity: 0.8
+    }),
+    style: () => ({ color:'blue', weight:0.9, fillOpacity:0.3 }),
+    onEachFeature: (feature, layer) => {
+      layer.zone = 'mirail';
+      allLayers.push(layer);
+      layer.on('click', () => showDetails(feature.properties));
+    }
+  }).addTo(map);
 
-                L.geoJSON(dataM, {
-                    pointToLayer: (feature, latlng) => L.circleMarker(latlng, {
-                        radius: 4,
-                        color: 'blue', 
-                        weight: 1,
-                        opacity: 1,
-                        fillColor: 'blue',
-                        fillOpacity: 0.8
-                    }),
-                    style: feature => ({
-                    color: 'blue',
-                    weight: 0.9,
-                    fillOpacity: 0.3
-}), 
-                    onEachFeature: (feature, layer) => {
-                    layer.zone = 'mirail'; 
-                    allLayers.push(layer);
-                    layer.on('click', () => showDetails(feature.properties));
-}
-                }).addTo(map);
+  // Calcul initial des patterns après chargement des 2 bases
+  const allSpatialFeatures = [...dataGeojson, ...datamGeojson].filter(f => !f.properties.isDiscourse);
+  patterns = identifyPatterns(allSpatialFeatures); patternsVersion++;
+  combinedFeatures = [...dataGeojson, ...datamGeojson];
 
-                // Identifier les patterns une fois que les deux bases de données spatiales sont chargées
-                const allSpatialFeatures = [...dataGeojson, ...datamGeojson].filter(feature => !feature.properties.isDiscourse);
-                patterns = identifyPatterns(allSpatialFeatures);
+  if (currentView === 'patterns-map') {
+    initPatternMapOnce();
+    renderPatternBaseGrey();
+    refreshPatternsMap();
+  }
+});
 
-                // Mise à jour de la vue proxémique
-                if (!isMapView) {
-                    showProxemicView();
-                }
-
-                combinedFeatures = [...dataGeojson, ...datamGeojson];
-
-if (currentView === 'patterns-map') {
-  initPatternMapOnce();
-  renderPatternBaseGrey();
-  refreshPatternsMap();
-}
-            });
-    });
 
 
 let discoursLayer = null;
 
 // Assure que le pane est bien créé AVANT le fetch
-map.createPane('pane-discours');
-map.getPane('pane-discours').style.zIndex = 650;
 
 fetch('data/discours.geojson')
   .then(res => res.json())
@@ -529,15 +494,15 @@ onEachFeature: (feature, layer) => {
 
 
 // Crée (au besoin) un pane dédié à un pattern pour contrôler l'ordre d'empilement
-function ensurePatternPane(patternName, index) {
-  if (patternPanes.has(patternName)) return patternPanes.get(patternName);
-  const paneId = `pane-pattern-${patternName}`;
+function ensureRingPane(ringIndex) {
+  const paneId = `pane-ring-${ringIndex}`;
+  if (patternPanes.has(paneId)) return paneId;
   patternMap.createPane(paneId);
-  // Z-index croissant pour séparer visuellement les anneaux superposés
-  patternMap.getPane(paneId).style.zIndex = 600 + index;
-  patternPanes.set(patternName, paneId);
+  patternMap.getPane(paneId).style.zIndex = 600 + ringIndex; // intérieur < extérieur
+  patternPanes.set(paneId, paneId);
   return paneId;
 }
+
 
 // Centre "robuste" de n'importe quelle géométrie (Point, LineString, Polygon...)
 function getFeatureCenter(feature) {
@@ -611,7 +576,8 @@ function refreshPatternsMap() {
       const radius = BASE_RADIUS + idx * RING_SPACING;
 
       // un pane par anneau pour bien gérer la superposition
-      const pane = ensurePatternPane('ring-' + pName + '-' + id, 600 + idx);
+      const pane = ensureRingPane(idx);
+
 
       // ----- contenu de la tooltip -----
       const fragId   = feature.properties.id || '';
@@ -635,13 +601,19 @@ function refreshPatternsMap() {
         fillOpacity: 0
       });
 
-      marker.bindTooltip(tipHtml, {
-        className: 'pattern-tip',   // applique la police Consolas + styles
-        direction: 'top',
-        sticky: true,
-        offset: [0, -6],
-        opacity: 1
-      });
+      marker.on('mouseover', function () {
+  if (!this._tooltip) {
+    this.bindTooltip(tipHtml, {
+      className: 'pattern-tip',
+      direction: 'top',
+      sticky: true,
+      offset: [0, -6],
+      opacity: 1
+    }).openTooltip();
+  }
+});
+marker.on('mouseout', function () { this.closeTooltip(); });
+
 
       marker.on('click', () => onPatternsMapFragmentClick(feature));
 
@@ -946,6 +918,7 @@ function showGalleryView() {
 
           const img = document.createElement('img');
           img.loading = 'lazy';
+          img.decoding = 'async';
           img.src = photo;
           img.alt = feature.properties.name || feature.properties.id || 'photo';
           img.onclick = () => showDetails(feature.properties);
@@ -1467,24 +1440,42 @@ document.addEventListener('DOMContentLoaded', () => {
 // SLIDER POUR AJUSTER LE NIVEAU DE SIMILARITÉ DES PATTERNS
 // ============================
 
-document.getElementById('similarity-slider').addEventListener('input', function() {
-    const value = parseInt(this.value);
-    patternThreshold = value; 
-    document.getElementById('slider-value').textContent = value;
 
-  // Recalcule toujours sur les éléments visibles selon zones (hors discours)
-  const visible = [...dataGeojson, ...datamGeojson].filter(f => isFeatureInActiveZones(f) && !f.properties.isDiscourse);
+function debounce(fn, delay = 160) {
+  let t;
+  return function (...args) {
+    const ctx = this;                 // on conserve le this du listener
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(ctx, args), delay);
+  };
+}
+
+const sliderEl = document.getElementById('similarity-slider');
+
+sliderEl.addEventListener('input', debounce(function (e) {
+  const value = parseInt(e.target.value, 10);
+  patternThreshold = value;
+  document.getElementById('slider-value').textContent = value;
+
+  // 1) Recalcule toujours sur les éléments visibles selon les zones (hors discours)
+  const visible = [...(dataGeojson || []), ...(datamGeojson || [])]
+    .filter(f => isFeatureInActiveZones ? isFeatureInActiveZones(f) : true)
+    .filter(f => !f.properties?.isDiscourse);
+
   patterns = identifyPatterns(visible);
 
+  // 2) Rafraîchir la vue courante (suivant ce que ton code expose)
   if (currentView === 'gallery') {
     showGalleryView();
   } else if (currentView === 'proxemic') {
     showProxemicView();
   } else if (currentView === 'patterns-map') {
-    renderPatternBaseGrey();
-    refreshPatternsMap();
+    // si tu as ces fonctions (carte des patterns)
+    if (typeof renderPatternBaseGrey === 'function') renderPatternBaseGrey();
+    if (typeof refreshPatternsMap === 'function')    refreshPatternsMap();
   }
-});
+}, 160));
+
 
 
 // ========== NOUVELLE CARTE "PATTERNS" ==========
