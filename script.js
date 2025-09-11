@@ -235,6 +235,49 @@ function maskToCriteriaDict(mask) {
 }
 
 
+// Transforme un dictionnaire {critère:true} en mask binaire
+function criteriaDictToMask(dict) {
+  let mask = 0;
+  CRITERIA_KEYS.forEach((key, idx) => { if (dict && dict[key]) mask |= (1 << idx); });
+  return mask;
+}
+
+// Calcule les différences entre le mask du pattern et celui du fragment
+function diffCriteria(patternMask, fragMask) {
+  const shared    = patternMask & fragMask;     // communs
+  const different = fragMask   & ~patternMask;  // présents sur le fragment mais pas dans le pattern
+  return { shared, different };
+}
+
+
+// Rend une "série de badges" pour un mask donné
+function badgesFromMask(mask, className) {
+  const frag = document.createDocumentFragment();
+  let hasAny = false;
+  CRITERIA_KEYS.forEach((key, idx) => {
+    if (mask & (1 << idx)) {
+      hasAny = true;
+      const span = document.createElement('span');
+      span.className = `crit-badge ${className}`;
+      span.textContent = key.replace(/_/g, ' ');
+      frag.appendChild(span);
+    }
+  });
+  if (!hasAny) {
+    const span = document.createElement('span');
+    span.className = 'crit-empty';
+    span.textContent = '—';
+    frag.appendChild(span);
+  }
+  return frag;
+}
+
+
+
+
+
+
+
 // ============================
 // DÉTECTION DES PATTERNS PAR SIMILARITÉ DE CRITÈRES
 // ============================
@@ -827,40 +870,87 @@ function renderFragmentPanel(panel, props) {
 // Contenu "pattern" (condensé proxémie)
 function renderPatternPanel(panel, patternKey, patternData) {
   panel.innerHTML = '';
-  const h2 = document.createElement('h2'); h2.textContent = `${patternKey} — Pattern`;
-  const crits = Object.keys(patternData.criteria || {}).join(', ');
-  const pCrit = document.createElement('p'); pCrit.innerHTML = `<strong>Critères communs :</strong> ${crits || '—'}`;
 
-  // liste des fragments membres avec 1 miniature si dispo
+  // Titre + critères communs du pattern
+  const h2 = document.createElement('h2');
+  h2.textContent = `${patternKey} — Pattern`;
+  const crits = Object.keys(patternData.criteria || {}).map(c => c.replace(/_/g, ' ')).join(', ');
+  const pCrit = document.createElement('p');
+  pCrit.innerHTML = `<strong>Critères communs du pattern :</strong> ${crits || '—'}`;
+
+  // Légende explicabilité
+  const legend = document.createElement('div');
+  legend.className = 'crit-legend';
+  legend.innerHTML = `
+    <span class="crit-badge badge-shared">partagés</span>
+    <span class="crit-badge badge-different">différents</span>
+  `;
+
+  // Liste des fragments membres (avec miniature + "pourquoi moi ?")
   const list = document.createElement('div');
-  list.style.display = 'grid';
-  list.style.gridTemplateColumns = '48px 1fr';
-  list.style.gap = '8px';
+  list.className = 'pattern-members';
 
   const all = [...(dataGeojson || []), ...(datamGeojson || [])];
   const byId = new Map(all.map(f => [f.properties.id, f]));
 
+  // Mask du pattern (à partir de son dict de critères)
+  const patternMask = criteriaDictToMask(patternData.criteria || {});
+
   (patternData.elements || []).forEach(id => {
     const f = byId.get(id);
-    const thumb = document.createElement('div');
-    thumb.style.width = '48px'; thumb.style.height = '36px';
-    thumb.style.background = '#eee'; thumb.style.border = '1px solid #ccc';
-    if (f?.properties?.photos?.length) {
-      thumb.style.backgroundImage = `url(${f.properties.photos[0]})`;
-      thumb.style.backgroundSize = 'cover';
-      thumb.style.backgroundPosition = 'center';
-    }
-    const label = document.createElement('div');
-    label.textContent = (f?.properties?.name || id);
-    label.style.display = 'flex';
-    label.style.alignItems = 'center';
+    const row = document.createElement('div');
+    row.className = 'member-row';
 
-    list.appendChild(thumb);
-    list.appendChild(label);
+    // miniature
+    const thumb = document.createElement('div');
+    thumb.className = 'member-thumb';
+    if (f?.properties?.photos?.[0]) {
+      thumb.style.backgroundImage = `url(${f.properties.photos[0]})`;
+    }
+
+    // titre fragment
+    const title = document.createElement('div');
+    title.className = 'member-title';
+    title.textContent = f?.properties?.name || id;
+
+    // bloc "pourquoi moi ?"
+    const why = document.createElement('div');
+    why.className = 'member-why';
+
+    // calcule les 3 masques à partir du bitmask du fragment
+    const fragMask = buildMaskFor(f || { properties: { id } });
+    const { shared, different } = diffCriteria(patternMask, fragMask);
+
+    // lignes
+    const rowShared = document.createElement('div');
+    rowShared.className = 'crit-row';
+    rowShared.innerHTML = `<span class="crit-label">Partagés</span>`;
+    rowShared.appendChild(badgesFromMask(shared, 'badge-shared'));
+
+    const rowDifferent = document.createElement('div');
+    rowDifferent.className = 'crit-row';
+    rowDifferent.innerHTML = `<span class="crit-label">Différents</span>`;
+    rowDifferent.appendChild(badgesFromMask(different, 'badge-different'));
+
+    // clic : ouvre détails du fragment
+    row.addEventListener('click', () => showDetails(f?.properties || { id }));
+
+    why.appendChild(rowShared);
+    why.appendChild(rowDifferent);
+
+    const right = document.createElement('div');
+    right.className = 'member-right';
+    right.appendChild(title);
+    right.appendChild(why);
+
+    row.appendChild(thumb);
+    row.appendChild(right);
+    list.appendChild(row);
   });
 
-  panel.append(h2, pCrit, list);
+  panel.append(h2, pCrit, legend, list);
 }
+
 
 
 function renderDiscoursePanel(panel, props) {

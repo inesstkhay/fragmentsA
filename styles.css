@@ -373,3 +373,102 @@ input[type="range"] {
   background:#fff; color:#000; font-weight:bold;
   border-color:#888; box-shadow:0 -2px 5px rgba(255,255,255,.2) inset;
 }
+
+
+/* ===== Explicabilité locale (Pourquoi moi ?) ===== */
+
+/* ===== Panneau Pattern : alignement solide ===== */
+
+/* conteneur global des membres */
+.pattern-members{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:12px;
+}
+
+/* une ligne "membre" = vignette fixe + contenu fluide */
+.member-row{
+  display:grid;
+  grid-template-columns:70px minmax(0,1fr); /* << clé : 2e colonne peut rétrécir */
+  gap:12px;
+  padding:10px;
+  border:1px solid #2a2a2a;
+  border-radius:6px;
+  background:#0f0f0f;
+  box-sizing:border-box; /* pas de débordement à cause des bordures */
+}
+
+.member-thumb{
+  width:70px; height:55px;
+  border:1px solid #444; border-radius:4px;
+  background:#1a1a1a center/cover no-repeat;
+}
+
+.member-right{ display:flex; flex-direction:column; gap:6px; }
+
+.member-title{
+  font-weight:600; color:#fff; font-size:14px; line-height:1.2;
+}
+
+/* lignes Partagés / Manquants / Différents */
+.crit-row{
+  display:grid;
+  grid-template-columns:110px minmax(0,1fr);
+  gap:8px;
+  align-items:start;
+}
+
+/* label à gauche, bien calé */
+.crit-label{
+  font-size:12px; color:#bbb; line-height:20px;
+  white-space:nowrap; text-align:right;
+}
+
+/* zone badges (la 2e colonne) : force le wrap et empêche les débords */
+.crit-row > :last-child{
+  min-width:0;                 /* la colonne peut se comprimer */
+  display:flex;
+  flex-wrap:wrap;              /* les badges passent à la ligne suivante */
+  gap:6px 6px;
+}
+
+/* badges */
+.crit-badge{
+  display:inline-block;
+  padding:2px 6px;
+  font-size:11px;
+  line-height:1.25;           /* + lisible en multilignes */
+  border-radius:4px;
+  border:1px solid transparent;
+  max-width:100%;             /* ne dépasse jamais sa colonne */
+  white-space:normal;         /* << autorise le retour à la ligne */
+  overflow-wrap:anywhere;     /* << casse les mots si besoin */
+  word-break:break-word;      /* << garde le badge dans la colonne */
+}
+
+.crit-badge{ max-width:240px; }
+
+/* variantes couleurs */
+.badge-shared    { background:#083d18; color:#d7ffe5; border-color:#0f5a28; }
+.badge-different { background:#3a0f12; color:#ffd9dd; border-color:#5a1a1f; }
+
+.crit-empty{ color:#808080; font-style:italic; }
+
+/* petits affinages pour éviter les micro-décalages */
+#tabbed-sidebar, #tabbed-sidebar-content, .member-row, .crit-row{ overflow:hidden; }
+
+
+/* Donne de l'air en bas des panneaux sidebar/tabbed */
+#tabbed-sidebar-content {
+  padding-bottom: 60px;   /* marge blanche pour que le dernier fragment ne colle pas */
+  box-sizing: border-box;
+}
+
+#spatial-sidebar,
+#discourse-sidebar {
+  padding-bottom: 40px;   /* idem pour les autres sidebars si besoin */
+  box-sizing: border-box;
+}
+
+
