@@ -28,18 +28,7 @@ body {
             overflow: auto;
             cursor: grab;
         }
-        #sidebar {
-            width: 350px;
-            background: #f9f9f9;
-            padding: 1rem;
-            overflow-y: auto;
-            border-left: 1px solid #ccc;
-            display: none;
-            position: absolute;
-            top: 10%;
-            right: 0;
-            z-index: 10000; 
-        }
+
         #filters {
             position: absolute;
             color: white;
@@ -51,24 +40,6 @@ body {
             max-height: 90vh;
             overflow-y: auto;
             border: 1px solid #ffffff;
-        }
-        .photo {
-            width: 100%;
-            margin: 5px 0;
-        }
-        .circle {
-            position: absolute;
-            border-radius: 50%;
-            background-color: white;
-            border: 1px solid black;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-        .circle span {
-            font-size: 12px;
-            color: black;
         }
         
 
@@ -83,17 +54,7 @@ body {
             cursor: pointer;
             z-index: 110; 
         }
-        .category-label {
-            position: absolute;
-            font-weight: bold;
-            color: #333;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 2px 6px;
-            border-radius: 6px;
-            font-size: 14px;
-            z-index: 101;
-            pointer-events: none;
-        }
+
         
         .sidebar {
     width: 350px;
@@ -153,9 +114,6 @@ input[type="range"] {
     accent-color: black;
 }
 
-.discourse-marker {
-    z-index: 9999 !important;
-}
 
 
 /* Conteneur de la barre d'onglets */
@@ -471,4 +429,135 @@ input[type="range"] {
   box-sizing: border-box;
 }
 
+#three-window { box-shadow: 0 10px 40px rgba(0,0,0,.45); }
 
+/* rangée de petits boutons dans les panneaux */
+.btn-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+/* variation compacte des .tab-btn existants */
+.tab-btn.btn-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+  line-height: 1.1;
+  border-radius: 4px;
+}
+
+/* optionnel: rendre l’action principale un peu plus “pleine” */
+.tab-btn.btn-sm.primary {
+  background: #111;
+  border-color: #666;
+}
+.tab-btn.btn-sm.primary:hover {
+  background: #1b1b1b;
+}
+
+/* rangée de petits boutons (déjà utilisée pour 3D) */
+.btn-row { display:flex; gap:6px; margin:8px 0 14px; }
+.tab-btn.btn-sm { padding:6px 8px; font-size:12px; line-height:1; }
+.tab-btn.btn-xs { padding:4px 6px; font-size:11px; line-height:1; }
+.tab-btn.primary { background:#111; color:#fff; border:1px solid #333; }
+.tab-btn.danger { background:#300; color:#fff; border:1px solid #a44; }
+
+/* blocs meta */
+.meta-box { border:1px dashed #ccc; padding:8px; margin:10px 0; }
+.meta-head { margin-bottom:6px; }
+.meta-add-row { display:flex; gap:8px; align-items:flex-start; }
+.meta-ta { flex:1; width:100%; resize:vertical; font-family:inherit; }
+.meta-list { margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+.meta-item { display:flex; justify-content:space-between; gap:8px; border:1px solid #eee; padding:6px; }
+.meta-item-left { display:flex; gap:8px; align-items:flex-start; flex:1; }
+.meta-item-right { display:flex; gap:6px; align-items:center; }
+.meta-item-text { white-space:pre-wrap; cursor:pointer; }
+.meta-empty { color:#888; font-style:italic; padding:6px; }
+.meta-edit-row { display:flex; gap:6px; align-items:flex-start; width:100%; }
+.meta-edit { flex:1; resize:vertical; font-family:inherit; }
+
+/* === Labels 3D (CSS2D) === */
+.three-label {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 4px 6px;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 4px;
+  background: rgba(0,0,0,.65);
+  white-space: pre-wrap;        /* multi-ligne */
+  max-width: 220px;             /* évite de trop larges blocs */
+  pointer-events: none;         /* clics passent à travers */
+  backdrop-filter: blur(2px);   /* lisibilité */
+}
+.three-label.usage   { color: #ff3b3b; border-color: rgba(255,59,59,.35); }
+.three-label.discours{ color: #fff;    border-color: rgba(255,255,255,.25); }
+
+/* ====== Inspecteur Unité (V1/V2/Compare) ====== */
+/* mêmes styles que la modale 3D */
+#unit-modal.modal { position:fixed; inset:0; z-index:4002; }
+#unit-modal .modal__backdrop { position:absolute; inset:0; background:rgba(0,0,0,.55); }
+#unit-modal .modal__dialog { position:relative; margin:4vh auto; width:min(1100px, 92vw); height:min(84vh, 92vh); background:#111; border:1px solid #333; border-radius:8px; display:flex; flex-direction:column; }
+#unit-modal .modal__head { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid #222; background:#0b0b0b; }
+#unit-modal .modal__body { position:relative; flex:1; padding:0; }
+#unit-modal .three-host { width:100%; height:100%; }
+/* Par défaut on cache la vue comparer — le JS l’affiche au besoin */
+#unit-modal .compare-host {
+  display: none;
+  gap: 8px;
+  width: 100%;
+  height: 100%;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+/* La vue simple garde toute la place */
+#unit-modal #unit-single-host {
+  display: block;
+}
+
+#unit-modal .unit-col { flex:1; background:#0a0a0a; border:1px solid #222; border-radius:6px; overflow:hidden; }
+#unit-modal .modal__actions .tab-btn { margin-left:6px; }
+
+
+/* Tous les conteneurs qui reçoivent un viewer Three.js */
+.three-host {
+  position: relative;   /* indispensable pour CSS2DRenderer (labels) */
+  width: 100%;
+  height: 100%;
+  overflow: hidden;     /* évite tout débordement d’éléments internes */
+}
+
+/* Dans la modale Unité */
+#unit-modal .three-host { position: relative; }
+
+/* Colonnes du mode comparer */
+#unit-modal .unit-col > div { position: relative; }
+
+
+/* ---- En-tête de modale partagé (3D & Unité) ---- */
+.modal__head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 12px; border-bottom:1px solid #222; background:#0b0b0b;
+}
+.modal__actions .tab-btn{ margin-left:6px; }
+
+/* ---- Modale 3D : même gabarit que l’Unité ---- */
+#three-modal{ position:fixed; inset:0; z-index:4005; }
+#three-modal .modal__backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.55); }
+#three-modal .modal__dialog{
+  position:relative;
+  margin:8vh auto;
+  width:min(900px, 92vw);
+  height:min(700px, 80vh);
+  background:#111;
+  border:1px solid #333;
+  border-radius:8px;
+  display:flex; flex-direction:column;
+  box-shadow:0 10px 40px rgba(0,0,0,.45);
+}
+#three-modal .three-host{ flex:1; min-height:300px; }
+
+/* Optionnel : si tu veux exactement le même espacement que l’Unité */
+#three-window .modal__actions .tab-btn{ margin-left:6px; }
