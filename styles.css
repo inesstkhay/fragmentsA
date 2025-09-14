@@ -561,3 +561,5 @@ input[type="range"] {
 
 /* Optionnel : si tu veux exactement le même espacement que l’Unité */
 #three-window .modal__actions .tab-btn{ margin-left:6px; }
+
+.photo { width: 100%; margin: 5px 0; }
