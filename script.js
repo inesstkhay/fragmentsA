@@ -80,20 +80,52 @@ function normalizePhotos(p) {
   return [];
 }
 
-function makeImg(src, alt = 'photo') {
+function makeImg(src, alt = 'photo', { priority = 'low', lazy = true } = {}) {
   const url = cleanPhotoUrl(src);
   if (!url) return null;
+
   const img = document.createElement('img');
-  img.src = url;
   img.alt = alt;
-  img.loading = 'lazy';
   img.decoding = 'async';
-  // Certains hébergeurs n'aiment pas le referrer : on l'enlève
   img.referrerPolicy = 'no-referrer';
-  // Si l'image échoue, on la masque pour éviter un gros carré cassé
   img.onerror = () => { img.style.display = 'none'; };
+
+  // priorité réseau (Chrome/Edge/Opera + Safari récents)
+  img.setAttribute('fetchpriority', priority);
+  img.fetchPriority = priority;
+
+  if (lazy) img.loading = 'lazy';
+
+  if (lazy && 'IntersectionObserver' in window) {
+    // tiny placeholder pour déclencher la mise en page instantanément
+    img.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+    img.dataset.src = url;
+    ensureImgObserver().observe(img);
+  } else {
+    // images prioritaires / peu nombreuses : on charge tout de suite
+    img.src = url;
+  }
   return img;
 }
+
+let __imgObserver = null;
+function ensureImgObserver() {
+  if (__imgObserver) return __imgObserver;
+  __imgObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const img = entry.target;
+      const real = img.dataset.src;
+      if (real) {
+        img.src = real;
+        img.removeAttribute('data-src');
+      }
+      obs.unobserve(img);
+    });
+  }, { rootMargin: '800px 0px', threshold: 0.01 }); // précharge ~800px avant
+  return __imgObserver;
+}
+
 
 
 
