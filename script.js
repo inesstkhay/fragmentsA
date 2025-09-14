@@ -59,6 +59,46 @@ let unitLayerGroup = null;      // toutes les unités dessinées
 let unitContextGroup = null;    // contexte (contours, base grise, etc.)
 
 
+
+/* ------------ Helpers images : nettoyage & création d'<img> ------------- */
+function cleanPhotoUrl(u) {
+  if (!u) return null;
+  // trim + force https
+  let s = String(u).trim().replace(/^http:\/\//i, 'https://');
+  // garde uniquement l'URL (si du HTML a été collé)
+  const m = s.match(/https?:\/\/[^\s"'<>]+/i);
+  return m ? m[0] : null;
+}
+
+function normalizePhotos(p) {
+  if (!p) return [];
+  if (Array.isArray(p)) return p;
+  if (typeof p === 'string') {
+    // accepte séparateur virgule ou point-virgule
+    return p.split(/[;,]\s*/).filter(Boolean);
+  }
+  return [];
+}
+
+function makeImg(src, alt = 'photo') {
+  const url = cleanPhotoUrl(src);
+  if (!url) return null;
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = alt;
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  // Certains hébergeurs n'aiment pas le referrer : on l'enlève
+  img.referrerPolicy = 'no-referrer';
+  // Si l'image échoue, on la masque pour éviter un gros carré cassé
+  img.onerror = () => { img.style.display = 'none'; };
+  return img;
+}
+
+
+
+
+
 /*---------------------------------------
   CARTE PRINCIPALE (Fragments)
   (déjà initialisée ci-dessus)
@@ -557,11 +597,15 @@ function renderFragmentPanel(panel, props) {
   const pId = document.createElement('p'); pId.innerHTML = `<strong>ID :</strong> ${fragId}`;
   const pDesc = document.createElement('p'); pDesc.textContent = props.description || '';
   const photos = document.createElement('div');
-  if (props.photos && props.photos.length) {
-    props.photos.forEach(src => {
-      const img = document.createElement('img');
-      img.src = src; img.style.width = '100%'; img.style.marginBottom = '8px';
-      photos.appendChild(img);
+  const photoList = normalizePhotos(props.photos);
+  if (photoList.length) {
+    photoList.forEach(src => {
+      const img = makeImg(src, props.name || fragId || 'photo');
+      if (img) {
+        img.style.width = '100%';
+        img.style.marginBottom = '8px';
+        photos.appendChild(img);
+      }
     });
   }
   panel.append(h2, pId, pDesc, photos);
@@ -669,7 +713,9 @@ function renderPatternPanel(panel, patternKey, patternData) {
     const f = byId.get(id);
     const row = document.createElement('div'); row.className = 'member-row';
     const thumb = document.createElement('div'); thumb.className = 'member-thumb';
-    if (f?.properties?.photos?.[0]) thumb.style.backgroundImage = `url(${f.properties.photos[0]})`;
+    const first = cleanPhotoUrl(normalizePhotos(f?.properties?.photos)[0]);
+if (first) thumb.style.backgroundImage = `url("${first}")`;
+
     const title = document.createElement('div'); title.className = 'member-title'; title.textContent = f?.properties?.name || id;
     const why = document.createElement('div'); why.className = 'member-why';
     const fragMask = buildMaskFor(f || { properties: { id } });
@@ -722,7 +768,12 @@ function showGalleryView() {
       if (pattern.elements.includes(feature.properties.id) && feature.properties.photos?.length) {
         feature.properties.photos.forEach(photo => {
           const cell = document.createElement('div'); cell.className = 'photo-cell';
-          const img = document.createElement('img');
+                    const img = makeImg(photo, feature.properties.name || feature.properties.id || 'photo');
+          if (img) {
+            img.onclick = () => showDetails(feature.properties);
+            cell.appendChild(img);
+          }
+
           img.loading = 'lazy'; img.decoding = 'async';
           img.src = photo; img.alt = feature.properties.name || feature.properties.id || 'photo';
           img.onclick = () => showDetails(feature.properties);
