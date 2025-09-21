@@ -565,3 +565,17 @@ input[type="range"] {
 .photo { width: 100%; margin: 5px 0; }
 
 #gallery-view { z-index: 1500; }
+
+
+.saved-item {
+  border:1px solid #222; border-radius:8px; background:#0d0d0d;
+  padding:10px; margin-bottom:10px; color:#eee;
+}
+.saved-item h4 { margin:0 0 6px; font-size:15px; }
+.saved-item .meta { color:#aaa; font-size:12px; margin-bottom:6px; }
+.saved-item .row { display:flex; gap:6px; flex-wrap:wrap; }
+
+.modal { position: fixed; inset: 0; display: none; z-index: 5000; }
+.modal[style*="display: block"] { display: block; } /* si tu pilotes par JS */
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); }
+.modal__dialog { position: relative; margin: 6vh auto; }

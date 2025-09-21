@@ -34,9 +34,10 @@
   <button class="tab-btn sub-tab" data-sub="proxemic">Proxémie</button>
   <button class="tab-btn sub-tab" data-sub="gallery">Galerie</button>
 
-  <!-- Action à droite ; création d'unité de projet -->
+  <button id="saved-patterns-list-btn" class="tab-btn sub-action">Liste des Patterns enregistrés</button>
   <button id="create-unit-btn" class="tab-btn sub-action">Créer une Unité de Projet</button>
 </div>
+
 
 <!-- VUES PRINCIPALES -->
 <div id="map" class="view active"><!-- ta carte Leaflet existante --></div>
@@ -190,6 +191,56 @@
     </div>
   </div>
 </div>
+
+
+
+<!-- Modale : Enregistrer un pattern -->
+<div id="save-pattern-modal" class="modal" style="display:none">
+  <div class="modal__backdrop"></div>
+  <div class="modal__dialog" style="width:min(760px,92vw);height:auto;max-height:84vh;overflow:auto;background:#111;border:1px solid #333;border-radius:8px;">
+    <div class="modal__head">
+      <strong>Enregistrer ce pattern</strong>
+      <div class="modal__actions">
+        <button id="sp-cancel" class="tab-btn btn-sm danger">Annuler</button>
+        <button id="sp-save"   class="tab-btn btn-sm primary">Enregistrer</button>
+      </div>
+    </div>
+    <div class="modal__body" style="padding:12px">
+      <div style="margin-bottom:10px">
+        <div style="color:#aaa;font-size:13px;margin-bottom:4px">Identifiant (calculé)</div>
+        <input id="sp-key" type="text" disabled style="width:100%;padding:8px;background:#0c0c0c;color:#bbb;border:1px solid #333;border-radius:4px">
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="color:#aaa;font-size:13px;margin-bottom:4px">Nom (affiché)</div>
+        <input id="sp-name" type="text" placeholder="Ex: « P3 — Marché informel »" style="width:100%;padding:8px;background:#0c0c0c;color:#fff;border:1px solid #333;border-radius:4px">
+      </div>
+      <div style="margin-bottom:10px">
+        <div style="color:#aaa;font-size:13px;margin-bottom:4px">Description</div>
+        <textarea id="sp-desc" rows="4" placeholder="Quelques lignes utiles…" style="width:100%;padding:8px;background:#0c0c0c;color:#fff;border:1px solid #333;border-radius:4px;resize:vertical"></textarea>
+      </div>
+      <div style="margin-bottom:6px;color:#aaa;font-size:13px">
+        Fragments inclus (<span id="sp-frag-count">0</span>) :
+      </div>
+      <div id="sp-fragments" style="border:1px solid #222;border-radius:6px;background:#0b0b0b;padding:8px;max-height:240px;overflow:auto;font-size:13px;color:#ddd"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modale : Liste des patterns enregistrés -->
+<div id="saved-patterns-list-modal" class="modal" style="display:none">
+  <div class="modal__backdrop"></div>
+  <div class="modal__dialog" style="width:min(900px,92vw);height:min(80vh,92vh);background:#111;border:1px solid #333;border-radius:8px;display:flex;flex-direction:column;">
+    <div class="modal__head">
+      <strong>Patterns enregistrés (local)</strong>
+      <div class="modal__actions">
+        <button id="splist-close" class="tab-btn btn-sm danger">Fermer</button>
+      </div>
+    </div>
+    <div id="splist-body" class="modal__body" style="padding:10px;overflow:auto"></div>
+  </div>
+</div>
+
 
 
 <script defer src="https://unpkg.com/leaflet/dist/leaflet.js"></script>

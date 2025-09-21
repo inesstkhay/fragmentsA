@@ -726,10 +726,16 @@ function renderFragmentPanel(panel, props) {
 ==================================================*/
 function renderPatternPanel(panel, patternKey, patternData) {
   panel.innerHTML = '';
+
   const h2 = document.createElement('h2');
   h2.textContent = `${patternKey} — Pattern`;
-  const crits = Object.keys(patternData.criteria || {}).map(c => c.replace(/_/g, ' ')).join(', ');
-  const pCrit = document.createElement('p'); pCrit.innerHTML = `<strong>Critères communs du pattern :</strong> ${crits || '—'}`;
+
+  const crits = Object.keys(patternData.criteria || {})
+    .map(c => c.replace(/_/g, ' '))
+    .join(', ');
+  const pCrit = document.createElement('p');
+  pCrit.innerHTML = `<strong>Critères communs du pattern :</strong> ${crits || '—'}`;
+
   const legend = document.createElement('div');
   legend.className = 'crit-legend';
   legend.innerHTML = `
@@ -737,33 +743,60 @@ function renderPatternPanel(panel, patternKey, patternData) {
     <span class="crit-badge badge-different">différents</span>
   `;
 
-  const list = document.createElement('div'); list.className = 'pattern-members';
+  // ✅ créer les actions AVANT de faire panel.append(...)
+  const actions = document.createElement('div');
+  actions.className = 'btn-row';
+  const btnSavePattern = document.createElement('button');
+  btnSavePattern.className = 'tab-btn btn-sm primary';
+  btnSavePattern.textContent = 'Enregistrer ce pattern';
+  btnSavePattern.title = 'Sauvegarder nom, description et fragments (instantané local)';
+  btnSavePattern.addEventListener('click', () => openSavePatternModal(patternKey, patternData));
+  actions.appendChild(btnSavePattern);
+
+  // liste des membres
+  const list = document.createElement('div');
+  list.className = 'pattern-members';
+
   const all = [...(dataGeojson || []), ...(datamGeojson || [])];
   const byId = new Map(all.map(f => [f.properties.id, f]));
   const patternMask = criteriaDictToMask(patternData.criteria || {});
+
   (patternData.elements || []).forEach(id => {
     const f = byId.get(id);
     const row = document.createElement('div'); row.className = 'member-row';
+
     const thumb = document.createElement('div'); thumb.className = 'member-thumb';
     const first = cleanPhotoUrl(normalizePhotos(f?.properties?.photos)[0]);
-if (first) thumb.style.backgroundImage = `url("${first}")`;
+    if (first) thumb.style.backgroundImage = `url("${first}")`;
 
-    const title = document.createElement('div'); title.className = 'member-title'; title.textContent = f?.properties?.name || id;
+    const title = document.createElement('div'); title.className = 'member-title';
+    title.textContent = f?.properties?.name || id;
+
     const why = document.createElement('div'); why.className = 'member-why';
-    const fragMask = buildMaskFor(f || { properties: { id } });
+    const fragMask = f ? buildMaskFor(f) : 0;
     const { shared, different } = diffCriteria(patternMask, fragMask);
-    const rowShared = document.createElement('div'); rowShared.className = 'crit-row'; rowShared.innerHTML = `<span class="crit-label">Partagés</span>`;
+
+    const rowShared = document.createElement('div'); rowShared.className = 'crit-row';
+    rowShared.innerHTML = `<span class="crit-label">Partagés</span>`;
     rowShared.appendChild(badgesFromMask(shared, 'badge-shared'));
-    const rowDifferent = document.createElement('div'); rowDifferent.className = 'crit-row'; rowDifferent.innerHTML = `<span class="crit-label">Différents</span>`;
+
+    const rowDifferent = document.createElement('div'); rowDifferent.className = 'crit-row';
+    rowDifferent.innerHTML = `<span class="crit-label">Différents</span>`;
     rowDifferent.appendChild(badgesFromMask(different, 'badge-different'));
+
     row.addEventListener('click', () => showDetails(f?.properties || { id }));
+
     why.append(rowShared, rowDifferent);
     const right = document.createElement('div'); right.className = 'member-right'; right.append(title, why);
-    row.append(thumb, right); list.appendChild(row);
+
+    row.append(thumb, right);
+    list.appendChild(row);
   });
 
-  panel.append(h2, pCrit, legend, list);
+  // ✅ maintenant on peut tout ajouter au panel
+  panel.append(h2, pCrit, legend, actions, list);
 }
+
 
 
 /*==================================================
@@ -1740,4 +1773,352 @@ function promptImport3DForFragment(fragmentId, reloadIfOpen=false) {
     }
   };
   input.click();
+}
+
+
+/*==================================================
+=           SAVED PATTERNS (localStorage)          =
+==================================================*/
+const SAVED_PATTERNS_KEY = 'savedPatternsV1';
+
+function loadSavedPatterns(){
+  try { return JSON.parse(localStorage.getItem(SAVED_PATTERNS_KEY) || '[]'); }
+  catch(e){ return []; }
+}
+function saveSavedPatterns(arr){
+  localStorage.setItem(SAVED_PATTERNS_KEY, JSON.stringify(arr));
+}
+function addSavedPattern(rec){
+  const arr = loadSavedPatterns();
+  arr.push(rec);
+  saveSavedPatterns(arr);
+}
+function updateSavedPattern(uid, patch){
+  const arr = loadSavedPatterns();
+  const i = arr.findIndex(x => x.uid === uid);
+  if (i >= 0) { arr[i] = { ...arr[i], ...patch, updatedAt: new Date().toISOString() }; saveSavedPatterns(arr); }
+}
+function deleteSavedPattern(uid){
+  saveSavedPatterns(loadSavedPatterns().filter(x => x.uid !== uid));
+}
+function fmtDate(iso){
+  try { const d = new Date(iso); return d.toLocaleString(); } catch(e){ return iso || ''; }
+}
+
+
+/*==================================================
+=   ÉDITEUR DE PATTERN (création ET modification)  =
+==================================================*/
+
+/**
+ * Ouvre la même fenêtre modale que la création, mais en mode:
+ *  - "create"  : on enregistre un NOUVEAU snapshot (addSavedPattern)
+ *  - "edit"    : on modifie un snapshot existant (updateSavedPattern)
+ *
+ * options = {
+ *   mode: 'create' | 'edit',
+ *   patternKey,                // string (clé P1, P7…)
+ *   elements: string[],        // ids des membres
+ *   criteria: object,          // critères du snapshot
+ *   name: string,              // nom initial (pré-rempli)
+ *   description: string,       // desc initiale (pré-remplie)
+ *   onSave: (payload) => void, // callback appelé quand on confirme
+ *   headerText?: string,       // (facultatif) titre personnalisé
+ *   saveText?: string          // (facultatif) libellé bouton
+ * }
+ */
+function openPatternEditor(options) {
+  const {
+    mode = 'create',
+    patternKey = '',
+    elements = [],
+    criteria = {},
+    name = patternKey,
+    description = '',
+    onSave = () => {},
+    headerText,
+    saveText
+  } = options || {};
+
+  const modal   = document.getElementById('save-pattern-modal');
+  // Toujours au-dessus de la liste + dernier dans le DOM (même z-index)
+modal.style.zIndex = '6000';
+document.body.appendChild(modal);
+  const keyEl   = document.getElementById('sp-key');
+  const nameEl  = document.getElementById('sp-name');
+  const descEl  = document.getElementById('sp-desc');
+  const listEl  = document.getElementById('sp-fragments');
+  const countEl = document.getElementById('sp-frag-count');
+  const btnSave = document.getElementById('sp-save');
+  const btnCancel = document.getElementById('sp-cancel');
+
+  // Titre et libellés
+  const headTitle = modal.querySelector('.modal__head strong');
+  headTitle.textContent = headerText || (mode === 'edit' ? 'Modifier ce pattern' : 'Enregistrer ce pattern');
+  btnSave.textContent   = saveText   || (mode === 'edit' ? 'Enregistrer les modifications' : 'Enregistrer');
+
+  // Remplissage des champs
+  keyEl.value   = patternKey;
+  nameEl.value  = (name || patternKey).trim();
+  descEl.value  = description || '';
+
+  // Remplir la liste des fragments
+  countEl.textContent = String(elements.length);
+  const all = [...(dataGeojson||[]), ...(datamGeojson||[])];
+  const byId = new Map(all.map(f => [f.properties.id, f]));
+  listEl.innerHTML = '';
+  elements.forEach(id => {
+    const f = byId.get(id);
+    const line = document.createElement('div');
+    line.textContent = `${id}${f?.properties?.name ? ' — ' + f.properties.name : ''}`;
+    listEl.appendChild(line);
+  });
+
+  // Ouverture + handlers
+  function close(){ modal.style.display = 'none'; cleanup(); }
+  function cleanup(){
+    document.querySelector('#save-pattern-modal .modal__backdrop').onclick = null;
+    btnCancel.onclick = null;
+    btnSave.onclick = null;
+  }
+  document.querySelector('#save-pattern-modal .modal__backdrop').onclick = close;
+  btnCancel.onclick = close;
+  btnSave.onclick = () => {
+    const payload = {
+      patternKey,
+      name: (nameEl.value || patternKey).trim(),
+      description: (descEl.value || '').trim(),
+      elements: elements.slice(),
+      criteria: criteria
+    };
+    onSave(payload);
+    close();
+  };
+
+  modal.style.display = 'block';
+}
+
+/* --- Création : garde le même nom de fonction publique --- */
+function openSavePatternModal(patternKey, patternData){
+  const els = (patternData?.elements || []).slice();
+  openPatternEditor({
+    mode: 'create',
+    patternKey,
+    elements: els,
+    criteria: patternData?.criteria || {},
+    name: (patternNames?.[patternKey]) || patternKey,
+    description: '',
+    onSave: (payload) => {
+      const rec = {
+        uid: 'sp_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7),
+        ...payload,
+        savedAt: new Date().toISOString()
+      };
+      addSavedPattern(rec);
+      // Ouvre directement la fiche
+      openSavedPatternPanel(rec.uid);
+    }
+  });
+}
+
+/* --- Édition d’un pattern SAUVEGARDÉ (par UID) --- */
+function openEditSavedPatternModal(uid){
+  const items = loadSavedPatterns();
+  const rec = items.find(x => x.uid === uid);
+  if (!rec) return;
+
+  openPatternEditor({
+    mode: 'edit',
+    patternKey: rec.patternKey,
+    elements: rec.elements || [],
+    criteria: rec.criteria || {},
+    name: rec.name || rec.patternKey,
+    description: rec.description || '',
+    onSave: (payload) => {
+      updateSavedPattern(uid, { name: payload.name, description: payload.description });
+
+      // rafraîchir la fiche ouverte si elle existe
+      const tabId = `saved-${uid}`;
+      const updated = loadSavedPatterns().find(x => x.uid === uid);
+      if (Tabbed?.openTabs?.has(tabId)) {
+        const panel = Tabbed.openTabs.get(tabId).panel;
+        renderSavedPatternPanel(panel, updated);
+        // mettre à jour le titre de l'onglet
+        Tabbed.openTabs.get(tabId).btn.firstChild.nodeValue = (updated.name || updated.patternKey);
+      }
+
+      // si la liste est à l’écran, on la rafraîchit
+      const listModal = document.getElementById('saved-patterns-list-modal');
+      if (listModal && listModal.style.display === 'block') {
+        openSavedPatternsListModal();
+      }
+    }
+  });
+}
+
+
+
+
+
+
+const savedListBtn = document.getElementById('saved-patterns-list-btn');
+if (savedListBtn) savedListBtn.addEventListener('click', () => openSavedPatternsListModal());
+
+
+
+
+function openSavedPatternsListModal(){
+  const modal = document.getElementById('saved-patterns-list-modal');
+  const body  = document.getElementById('splist-body');
+  const closeBtn = document.getElementById('splist-close');
+
+  body.innerHTML = '';
+  const items = loadSavedPatterns().slice().sort((a,b) => (new Date(b.savedAt)) - (new Date(a.savedAt)));
+
+  if (!items.length){
+    body.innerHTML = '<div style="color:#aaa">Aucun pattern enregistré pour le moment.</div>';
+  } else {
+    items.forEach(rec => {
+      const card = document.createElement('div');
+      card.className = 'saved-item';
+      const h = document.createElement('h4');
+      h.textContent = `${rec.name}  (${rec.patternKey})`;
+      const meta = document.createElement('div');
+      meta.className = 'meta';
+      meta.textContent = `Enregistré: ${fmtDate(rec.savedAt)} • Fragments: ${rec.elements?.length || 0}`;
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const bOpen = document.createElement('button');
+      bOpen.className = 'tab-btn btn-sm primary';
+      bOpen.textContent = 'Consulter';
+      bOpen.onclick = () => { modal.style.display = 'none'; openSavedPatternPanel(rec.uid); };
+
+       // ⬇️ Unifie Renommer + Modifier description
+      const bEdit = document.createElement('button');
+      bEdit.className = 'tab-btn btn-sm';
+      bEdit.textContent = 'Modifier';
+      bEdit.onclick = () => openEditSavedPatternModal(rec.uid);
+
+      const bDel = document.createElement('button');
+bDel.className = 'tab-btn btn-sm danger';
+bDel.textContent = 'Supprimer';
+bDel.onclick = () => {
+  // suppression immédiate, sans confirmation
+  deleteSavedPattern(rec.uid);
+  // rafraîchir la liste
+  openSavedPatternsListModal();
+};
+
+
+      row.append(bOpen, bEdit, bDel);
+      const p = document.createElement('div');
+      p.style.cssText = 'margin-top:6px;color:#ccc;white-space:pre-wrap';
+      p.textContent = rec.description || '—';
+
+      card.append(h, meta, row, p);
+      body.appendChild(card);
+    });
+  }
+
+  function close(){ modal.style.display = 'none'; cleanup(); }
+  function cleanup(){ document.querySelector('#saved-patterns-list-modal .modal__backdrop').onclick = null; closeBtn.onclick = null; }
+  document.querySelector('#saved-patterns-list-modal .modal__backdrop').onclick = close;
+  closeBtn.onclick = close;
+
+  modal.style.display = 'block';
+}
+
+
+function openSavedPatternPanel(uid){
+  const items = loadSavedPatterns();
+  const rec = items.find(x => x.uid === uid);
+  if (!rec) return;
+
+  openTab({
+    id: `saved-${uid}`,
+    title: rec.name || rec.patternKey,
+    kind: 'saved-pattern',
+    render: panel => renderSavedPatternPanel(panel, rec)
+  });
+}
+
+function renderSavedPatternPanel(panel, rec){
+  panel.innerHTML = '';
+
+  const h2 = document.createElement('h2');
+  h2.textContent = `${rec.name || rec.patternKey} — (enregistré)`;
+  const meta = document.createElement('div');
+  meta.style.cssText = 'color:#aaa;font-size:12px;margin-bottom:8px';
+  meta.textContent = `ID: ${rec.patternKey} • Fragments: ${rec.elements?.length || 0} • Sauvé: ${fmtDate(rec.savedAt)}${rec.updatedAt ? ' • Modifié: '+fmtDate(rec.updatedAt) : ''}`;
+
+  const desc = document.createElement('p');
+  desc.textContent = rec.description || '—';
+
+  // Critères (badges)
+  const critsWrap = document.createElement('div');
+  critsWrap.style.cssText = 'margin:6px 0 12px';
+  const critMask = criteriaDictToMask(rec.criteria || {});
+  const cTitle = document.createElement('div');
+  cTitle.innerHTML = '<strong>Critères du snapshot :</strong>';
+  const cBadges = badgesFromMask(critMask, 'badge-shared'); // même style "partagés"
+  critsWrap.append(cTitle, cBadges);
+
+  // Membres
+  const list = document.createElement('div');
+  list.className = 'pattern-members';
+
+  const all = [...(dataGeojson||[]), ...(datamGeojson||[])];
+  const byId = new Map(all.map(f => [f.properties.id, f]));
+
+  (rec.elements || []).forEach(id => {
+    const f = byId.get(id);
+    const row = document.createElement('div'); row.className = 'member-row';
+    const thumb = document.createElement('div'); thumb.className = 'member-thumb';
+    const first = cleanPhotoUrl(normalizePhotos(f?.properties?.photos)[0]);
+    if (first) thumb.style.backgroundImage = `url("${first}")`;
+
+    const title = document.createElement('div'); title.className = 'member-title';
+    title.textContent = f?.properties?.name ? `${id} — ${f.properties.name}` : id;
+
+    const why = document.createElement('div'); why.className = 'member-why';
+    const fragMask = f ? buildMaskFor(f) : 0;
+    const { shared, different } = diffCriteria(critMask, fragMask);
+
+    const rowShared = document.createElement('div'); rowShared.className = 'crit-row'; rowShared.innerHTML = `<span class="crit-label">Partagés</span>`;
+    rowShared.appendChild(badgesFromMask(shared, 'badge-shared'));
+    const rowDifferent = document.createElement('div'); rowDifferent.className = 'crit-row'; rowDifferent.innerHTML = `<span class="crit-label">Différents</span>`;
+    rowDifferent.appendChild(badgesFromMask(different, 'badge-different'));
+
+    why.append(rowShared, rowDifferent);
+    const right = document.createElement('div'); right.className = 'member-right'; right.append(title, why);
+    row.append(thumb, right);
+    row.addEventListener('click', () => { if (f) showDetails(f.properties); });
+    list.appendChild(row);
+  });
+
+    // Actions (un seul bouton "Modifier")
+  const actions = document.createElement('div'); actions.className = 'btn-row';
+
+  const bEdit = document.createElement('button');
+  bEdit.className = 'tab-btn btn-sm';
+  bEdit.textContent = 'Modifier';
+  bEdit.onclick = () => openEditSavedPatternModal(rec.uid);
+
+  const bDel = document.createElement('button');
+bDel.className = 'tab-btn btn-sm danger';
+bDel.textContent = 'Supprimer';
+bDel.onclick = () => {
+  // suppression immédiate, sans confirmation
+  deleteSavedPattern(rec.uid);
+  // fermer l’onglet courant s’il est ouvert
+  const id = `saved-${rec.uid}`;
+  if (Tabbed?.openTabs?.has(id)) closeTab(id);
+};
+
+
+  actions.append(bEdit, bDel);
+
+
+  panel.append(h2, meta, desc, critsWrap, actions, list);
 }
