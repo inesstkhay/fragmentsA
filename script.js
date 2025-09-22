@@ -367,6 +367,122 @@ function badgesFromMask(mask, className) {
 
 
 /*---------------------------------------
+  9-bis) DIMENSIONS ACTIVABLES (UI → masque)
+---------------------------------------*/
+
+// 1) Définir quelles clés appartiennent à chaque dimension
+const DIM_TO_KEYS = {
+  frequence_usage: [
+    "frequence_usage_ponctuel", "frequence_usage_regulier", "frequence_usage_quotidien"
+  ],
+  mode_usage: [
+    "mode_usage_prevu", "mode_usage_detourne", "mode_usage_creatif"
+  ],
+  intensite_usage: [
+    // on ne met PAS "intensite_usage_aucun" (clé technique éventuelle)
+    "intensite_usage_faible", "intensite_usage_moyenne", "intensite_usage_forte"
+  ],
+  echelle: [
+    "echelle_micro", "echelle_meso", "echelle_macro"
+  ],
+  origine_forme: [
+    "origine_forme_institutionnelle", "origine_forme_singuliere", "origine_forme_collective"
+  ],
+  accessibilite: [
+    "accessibilite_libre", "accessibilite_semi_ouverte", "accessibilite_fermee"
+  ],
+  visibilite: [
+    "visibilite_cachee", "visibilite_visible", "visibilite_exposee"
+  ],
+  acteurs_visibles: [
+    "acteurs_visibles_habitant", "acteurs_visibles_institution",
+    "acteurs_visibles_collectif", "acteurs_visibles_invisible"
+  ],
+  rapport_affectif_symbolique: [
+    "rapport_affectif_symbolique"
+  ]
+};
+
+// 2) Pré-calcul : bitmask par dimension (pour aller vite)
+const DIM_MASK = {};
+Object.entries(DIM_TO_KEYS).forEach(([dim, keys]) => {
+  let m = 0;
+  keys.forEach(k => {
+    const idx = CRITERIA_KEYS.indexOf(k);
+    if (idx >= 0) m |= (1 << idx);
+  });
+  DIM_MASK[dim] = m;
+});
+
+// 3) Par défaut : toutes les dimensions sont actives ⇒ masque = union de toutes
+let criteriaEnabledMask = Object.values(DIM_MASK).reduce((acc, m) => acc | m, 0);
+
+// 4) Base mask (par fragment) calculé une seule fois, puis "fenêtré" par le masque actif
+const BASE_MASK_BY_ID = new Map();
+function buildBaseMaskFor(feature) {
+  const id = feature.properties.id;
+  if (BASE_MASK_BY_ID.has(id)) return BASE_MASK_BY_ID.get(id);
+  let mask = 0;
+  CRITERIA_KEYS.forEach((key, idx) => { if (feature.properties[key] === true) mask |= (1 << idx); });
+  BASE_MASK_BY_ID.set(id, mask);
+  return mask;
+}
+
+// ⇨ remplacer l’ancien buildMaskFor(...) par cette fonction d’accès
+function getActiveMaskFor(feature) {
+  const base = buildBaseMaskFor(feature);
+  return (base & criteriaEnabledMask);
+}
+
+
+
+/*---------------------------------------
+  9-ter) LISTENERS UI des dimensions
+---------------------------------------*/
+function rebuildCriteriaEnabledMaskFromUI() {
+  let m = 0;
+  document.querySelectorAll('#criteria-legend .crit-dim').forEach(cb => {
+    const dim = cb.getAttribute('data-dim');
+    if (cb.checked && DIM_MASK[dim] !== undefined) {
+      m |= DIM_MASK[dim];
+    }
+  });
+  criteriaEnabledMask = m;
+}
+
+function recomputePatternsAndRefreshViews() {
+  // Recalcule la liste des features visibles selon la vue
+  const visible = [...(dataGeojson || []), ...(datamGeojson || [])]
+    .filter(f => isFeatureInActiveZones ? isFeatureInActiveZones(f) : true)
+    .filter(f => !f.properties?.isDiscourse);
+
+  patterns = identifyPatterns(visible);
+
+  // Rafraîchit la vue courante
+  if (currentView === 'gallery')        showGalleryView();
+  else if (currentView === 'proxemic')  showProxemicView();
+  else if (currentView === 'patterns-map') { renderPatternBaseGrey(); refreshPatternsMap(); }
+}
+
+function hookLegendCheckboxes() {
+  document.querySelectorAll('#criteria-legend .crit-dim').forEach(cb => {
+    cb.addEventListener('change', () => {
+      rebuildCriteriaEnabledMaskFromUI();
+      recomputePatternsAndRefreshViews();
+    });
+  });
+}
+
+// Quand le DOM est prêt, on accroche les listeners
+document.addEventListener('DOMContentLoaded', () => {
+  hookLegendCheckboxes();
+  rebuildCriteriaEnabledMaskFromUI(); // init (tout coché)
+});
+
+
+
+
+/*---------------------------------------
  10) DÉTECTION DES PATTERNS (similarité)
 ---------------------------------------*/
 function identifyPatterns(features) {
@@ -377,12 +493,12 @@ function identifyPatterns(features) {
   for (let i = 0; i < features.length; i++) {
     const f1 = features[i], id1 = f1.properties.id;
     if (used.has(id1)) continue;
-    const m1 = buildMaskFor(f1);
+    const m1 = getActiveMaskFor(f1);
 
     for (let j = i + 1; j < features.length; j++) {
       const f2 = features[j], id2 = f2.properties.id;
       if (used.has(id2)) continue;
-      const m2 = buildMaskFor(f2);
+      const m2 = getActiveMaskFor(f2);
 
       const sharedMask  = (m1 & m2);
       const sharedCount = popcount32(sharedMask);
@@ -773,7 +889,7 @@ function renderPatternPanel(panel, patternKey, patternData) {
     title.textContent = f?.properties?.name || id;
 
     const why = document.createElement('div'); why.className = 'member-why';
-    const fragMask = f ? buildMaskFor(f) : 0;
+    const fragMask = f ? getActiveMaskFor(f) : 0;
     const { shared, different } = diffCriteria(patternMask, fragMask);
 
     const rowShared = document.createElement('div'); rowShared.className = 'crit-row';
@@ -957,11 +1073,19 @@ function setView(viewId) {
 }
 
 function updateInterfaceElements(viewId) {
-  const legendBtn = document.getElementById('toggle-legend-btn');
+  const legendBtn   = document.getElementById('toggle-legend-btn');
   const locationBtn = document.getElementById('toggle-location-btn');
-  legendBtn.style.display  = viewId === 'proxemic' ? 'block' : 'none';
+
+  // ✅ bouton "Critères actifs" visible sur : Carte (patterns-map), Proxémie, Galerie
+  const wantsLegend =
+    viewId === 'proxemic' ||
+    viewId === 'gallery'  ||
+    viewId === 'patterns-map';
+
+  legendBtn.style.display   = wantsLegend ? 'block' : 'none';
   locationBtn.style.display = (viewId === 'map' || viewId === 'patterns-map' || viewId === 'unit') ? 'block' : 'none';
 }
+
 
 const topTabs = document.querySelectorAll('.top-tab');
 const subnav = document.getElementById('subnav-patterns');
@@ -2082,7 +2206,7 @@ function renderSavedPatternPanel(panel, rec){
     title.textContent = f?.properties?.name ? `${id} — ${f.properties.name}` : id;
 
     const why = document.createElement('div'); why.className = 'member-why';
-    const fragMask = f ? buildMaskFor(f) : 0;
+    const fragMask = f ? getActiveMaskFor(f) : 0;
     const { shared, different } = diffCriteria(critMask, fragMask);
 
     const rowShared = document.createElement('div'); rowShared.className = 'crit-row'; rowShared.innerHTML = `<span class="crit-label">Partagés</span>`;

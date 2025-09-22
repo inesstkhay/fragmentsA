@@ -99,27 +99,43 @@
 
    <!-- LEGENDE -->
 
-   <div id="criteria-legend" style="position: absolute;  display: none; bottom: 60px; left: 10px; width: 320px; background: white; border: 1px solid #ccc; padding: 10px; font-size: 12px; z-index: 1050; overflow-y: auto; max-height: 50vh;">
-    <strong>Légende des critères</strong><br><br>
-    <em>Espace perçu (usage)</em><br>
-    - Fréquence d’usage : ponctuel, régulier, quotidien<br>
-    - Mode d’usage : prévu, détourné, créatif<br>
-    - Intensité d’usage : faible, moyenne, forte, saturée<br><br>
+<div id="criteria-legend" style="position: absolute;  display: none; bottom: 60px; left: 10px; width: 240px; background: white; border: 1px solid #ccc; padding: 10px; font-size: 12px; z-index: 1050; overflow-y: auto; max-height: 60vh;">
+  <strong>Légende des critères</strong><br><br>
 
-    <em>Espace conçu</em><br>
-    - Échelle : micro, méso, macro<br>
-    - Origine de la forme : institutionnelle, singulière, collective<br>
-    - Accessibilité : libre, semi-ouverte, fermée<br>
-    - Visibilité : caché, visible, exposé<br><br>
+  <em>Espace perçu (usage)</em><br>
+  <label><input type="checkbox" class="crit-dim" data-dim="frequence_usage" checked> Fréquence d’usage</label><br>
+  <small>ponctuel, régulier, quotidien</small><br>
 
-    <em>Espace vécu (expérience)</em><br>
-    - Acteurs visibles : habitant·e, institution, collectif, invisible<br>
-    - Rapport affectif / symbolique
+  <label><input type="checkbox" class="crit-dim" data-dim="mode_usage" checked> Mode d’usage</label><br>
+  <small>prévu, détourné, créatif</small><br>
+
+  <label><input type="checkbox" class="crit-dim" data-dim="intensite_usage" checked> Intensité d’usage</label><br>
+  <small>faible, moyenne, forte</small><br><br>
+
+  <em>Espace conçu</em><br>
+  <label><input type="checkbox" class="crit-dim" data-dim="echelle" checked> Échelle</label><br>
+  <small>micro, méso, macro</small><br>
+
+  <label><input type="checkbox" class="crit-dim" data-dim="origine_forme" checked> Origine de la forme</label><br>
+  <small>institutionnelle, singulière, collective</small><br>
+
+  <label><input type="checkbox" class="crit-dim" data-dim="accessibilite" checked> Accessibilité</label><br>
+  <small>libre, semi-ouverte, fermée</small><br>
+
+  <label><input type="checkbox" class="crit-dim" data-dim="visibilite" checked> Visibilité</label><br>
+  <small>caché, visible, exposé</small><br><br>
+
+  <em>Espace vécu (expérience)</em><br>
+  <label><input type="checkbox" class="crit-dim" data-dim="acteurs_visibles" checked> Acteurs visibles</label><br>
+  <small>habitant·e, institution, collectif, invisible</small><br>
+
+  <label><input type="checkbox" class="crit-dim" data-dim="rapport_affectif_symbolique" checked> Rapport affectif / symbolique</label><br>
 </div>
+
 
 <button id="toggle-legend-btn" style="
     position: absolute;
-    bottom: 20px;
+    top: 180px;
     left: 10px;
     z-index: 1050;
     background-color: #000;
@@ -128,7 +144,7 @@
     border: 1px solid white;
     cursor: pointer;
     font-family: 'Consolas', monospace;
-">Légende</button>
+">Crtières actifs</button>
 
 
 <button id="toggle-location-btn"
