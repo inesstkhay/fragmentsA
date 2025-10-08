@@ -579,3 +579,30 @@ input[type="range"] {
 .modal[style*="display: block"] { display: block; } /* si tu pilotes par JS */
 .modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); }
 .modal__dialog { position: relative; margin: 6vh auto; }
+
+
+/* Proxémie : clusters d’images */
+.prox-cluster-bg {
+  fill: #0f0f0f;
+  stroke: #333;
+  stroke-width: 1px;
+  rx: 8px; ry: 8px;
+}
+
+.prox-cluster-tile {
+  shape-rendering: crispEdges;
+}
+
+.prox-cluster-label {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  fill: #fff;
+}
+
+.prox-cluster-label-bg {
+  fill: rgba(0,0,0,.8);
+  stroke: #444;
+  stroke-width: 1px;
+  rx: 4px; ry: 4px;
+}
