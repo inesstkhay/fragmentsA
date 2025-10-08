@@ -1,4 +1,5 @@
-# backdoorurbanism — carnet de développement (README en cours...) 
+# fragments — carnet de développement (README en cours...) 
+Version A: images
 
 Le site que je développe ici n’est pour l’instant qu’une **bêta**, alimentée par les données de ma thèse (fragments situés à Montreuil et au Mirail, discours collectés, essais de patterns).  
 À terme, il deviendra un **outil ouvert**. 
@@ -8,6 +9,8 @@ L’enjeu est d’articuler ce fragment avec d’autres, pour voir apparaître d
 
 Ce dépôt est un **work in progress**.  
 Il restera marqué par son origine de recherche (ma thèse), mais son ambition est de devenir un **logiciel activable**, qui puisse servir à d’autres contextes que les miens.  
+
+
 
 ---
 Développé par *Iness Tkhayyare*, doctorante au LRA ENSA Toulouse.  
